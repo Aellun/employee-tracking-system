@@ -1,0 +1,47 @@
+.home-page {
+    font-family: Arial, sans-serif; /* Change font as needed */
+    padding: 20px;
+    background-color: #f9f9f9; /* Light background color */
+    color: #333; /* Dark text color */
+  }
+  
+  .navbar {
+    background-color: #4CAF50; /* Green background for navbar */
+    padding: 15px;
+    border-radius: 5px;
+  }
+  
+  .navbar ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex; /* Use flexbox for horizontal alignment */
+    gap: 20px; /* Space between links */
+  }
+  
+  .navbar li {
+    display: inline; /* Display list items inline */
+  }
+  
+  .navbar a {
+    color: white; /* White text color for links */
+    text-decoration: none; /* Remove underline from links */
+    font-weight: bold; /* Make text bold */
+  }
+  
+  .navbar a:hover {
+    text-decoration: underline; /* Underline links on hover */
+  }
+  
+  .content {
+    margin-top: 20px; /* Space between navbar and content */
+  }
+  
+  .content h1 {
+    font-size: 2em; /* Larger font for heading */
+  }
+  
+  .content p {
+    font-size: 1.2em; /* Slightly larger text for paragraph */
+  }
+  
