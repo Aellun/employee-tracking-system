@@ -106,12 +106,18 @@ class LoginView(APIView):
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
-        
-        # Authenticate the user
-        user = authenticate(request, username=email, password=password)
 
-        if user is not None:
-            token, _ = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key, 'is_admin': user.is_staff}, status=status.HTTP_200_OK)
-        else:
+        # Debugging log
+        print(f"Received email: {email}, password: {password}") 
+
+        try:
+            # Attempt to find the user by email
+            user = User.objects.get(email=email)
+            # Check password
+            if user.check_password(password):
+                # Token generation logic here, replace 'your_token_here' with actual token generation logic
+                return Response({'token': 'your_token_here'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)

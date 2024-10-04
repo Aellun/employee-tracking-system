@@ -1,5 +1,6 @@
 import React, { useState } from 'react';  
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';  
+import { AuthProvider, useAuth } from './AuthProvider'; // Import the AuthProvider
 import Navbar from './components/Navbar';
 import Login from './components/Login';  
 import TasksPage from './pages/TasksPage';  
@@ -16,8 +17,7 @@ import AdminTasksPage from './pages/AdminTasksPage';
 
 function App() {  
   const [isTimeClockOpen, setIsTimeClockOpen] = useState(false); // State to manage Time Clock visibility
-  const isAdmin = true; // Example: change based on user role  
-  const token = localStorage.getItem('token'); // Check if user is logged in
+  const { token, isAdmin } = useAuth(); // Get auth values from context
 
   return (  
     <Router>  
@@ -56,4 +56,8 @@ function App() {
   );  
 }  
 
-export default App;  
+export default () => (
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+);
