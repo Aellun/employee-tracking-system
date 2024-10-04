@@ -1,6 +1,7 @@
 import React, { useState } from 'react';  
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';  
-import Navbar from './components/Navbar';  
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';  
+import Navbar from './components/Navbar';
+import Login from './components/Login';  
 import TasksPage from './pages/TasksPage';  
 import TimeTrackerPage from './pages/TimeTrackerPage';  
 import TimesheetPage from './pages/TimesheetPage';  
@@ -16,11 +17,13 @@ import AdminTasksPage from './pages/AdminTasksPage';
 function App() {  
   const [isTimeClockOpen, setIsTimeClockOpen] = useState(false); // State to manage Time Clock visibility
   const isAdmin = true; // Example: change based on user role  
+  const token = localStorage.getItem('token'); // Check if user is logged in
 
   return (  
     <Router>  
       <div>  
-        {window.location.pathname.startsWith('/admin') ? <AdminNavbar /> : <Navbar />}  
+        {/* Only show Navbar or AdminNavbar if the user is logged in */}
+        {token && (window.location.pathname.startsWith('/admin') ? <AdminNavbar /> : <Navbar />)}  
         
         {/* Render the Time Clock window conditionally */}
         {isTimeClockOpen && (
@@ -28,18 +31,23 @@ function App() {
         )}
         
         <Routes>  
-          <Route path="/" element={<HomePage />} />  
-          <Route path="/tasks" element={<TasksPage />} />  
-          <Route path="/track" element={<TimeTrackerPage />} />  
-          <Route path="/timesheet" element={<TimesheetPage />} />
-          <Route path="/clockin" element={<TimeClock />} />  
+          {/* If not logged in, redirect to login page */}
+          <Route path="/" element={token ? <Navigate to={isAdmin ? "/admin" : "/HomePage"} /> : <Login />} />
+          
+          {/* Protected Routes */}
+          <Route path="/HomePage" element={token ? <HomePage /> : <Navigate to="/" />} />  
+          <Route path="/tasks" element={token ? <TasksPage /> : <Navigate to="/" />} />  
+          <Route path="/track" element={token ? <TimeTrackerPage /> : <Navigate to="/" />} />  
+          <Route path="/timesheet" element={token ? <TimesheetPage /> : <Navigate to="/" />} />
+          <Route path="/clockin" element={token ? <TimeClock /> : <Navigate to="/" />} />  
+          
           {isAdmin && (  
             <>  
-              <Route path="/admin" element={<AdminHomePage />} />  
-              <Route path="/admin/employees" element={<EmployeesPage />} />  
-              <Route path="/admin/projects" element={<ProjectsPage />} />  
-              <Route path="/admin/reports" element={<ReportsPage />} /> 
-              <Route path="/admin/tasks" element={<AdminTasksPage />} /> 
+              <Route path="/admin" element={token ? <AdminHomePage /> : <Navigate to="/" />} />  
+              <Route path="/admin/employees" element={token ? <EmployeesPage /> : <Navigate to="/" />} />  
+              <Route path="/admin/projects" element={token ? <ProjectsPage /> : <Navigate to="/" />} />  
+              <Route path="/admin/reports" element={token ? <ReportsPage /> : <Navigate to="/" />} /> 
+              <Route path="/admin/tasks" element={token ? <AdminTasksPage /> : <Navigate to="/" />} /> 
             </>  
           )}  
         </Routes>  
