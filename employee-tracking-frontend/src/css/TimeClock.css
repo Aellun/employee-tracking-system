@@ -1,0 +1,69 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+.time-clock {
+  @apply max-w-6xl mx-auto p-8 bg-white rounded-lg shadow-md;
+}
+
+.title {
+  @apply text-xl font-bold mb-4;
+}
+
+.clocked-in-info {
+  @apply mb-4;
+}
+
+.totals {
+  @apply flex justify-between items-center mt-2;
+}
+
+.current-time,
+.day-count,
+.week-count {
+  @apply text-gray-500;
+}
+
+.jobs {
+  @apply mb-4;
+}
+
+.job-item {
+  @apply flex items-center mb-2;
+}
+
+.notes {
+  @apply mb-4;
+}
+
+.actions {
+  @apply flex justify-end space-x-2 mb-4;
+}
+
+.action-button {
+  @apply px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700 transition-colors duration-300;
+}
+
+.break-modal {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+}
+
+.break-selection {
+  @apply w-full max-w-sm bg-white p-6 rounded-lg shadow-md;
+}
+
+.break-type {
+  @apply font-semibold mb-2;
+}
+
+.break-duration {
+  @apply text-gray-500;
+}
+
+.modal-title {
+  @apply text-xl font-bold mb-4;
+}
+
+.close-button {
+  @apply absolute top-2 right-2 text-red-500 cursor-pointer;
+}
