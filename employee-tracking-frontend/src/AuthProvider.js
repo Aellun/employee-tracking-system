@@ -4,11 +4,11 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
-  const token = localStorage.getItem('token') || null; // Get token or null if not available
+  const token = localStorage.getItem('token') || null;
 
   const login = (userData) => {
     localStorage.setItem('token', userData.token);
-    setIsAdmin(userData.is_admin);
+    setIsAdmin(userData.is_admin);  // Set admin status based on backend response
   };
 
   const logout = () => {
