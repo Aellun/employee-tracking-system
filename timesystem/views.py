@@ -118,11 +118,16 @@ class LoginView(APIView):
 
         if user is not None:
             if user.is_active:
+                # Log the user's is_staff value
+                print(f"User {user.email} is_admin (is_staff): {user.is_staff}")
+
                 # Generate or get an existing token
                 token, _ = Token.objects.get_or_create(user=user)
+                
+                # Return response with token and is_admin status
                 return Response({
                     'token': token.key,
-                    'is_admin': user.is_staff,
+                    'is_admin': user.is_staff,  # This is the admin status you want to check
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'User account is disabled'}, status=status.HTTP_403_FORBIDDEN)

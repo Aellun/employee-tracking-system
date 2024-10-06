@@ -17,12 +17,14 @@ const Login = () => {
         email: email,
         password: password,
       });
-
+  
       if (response.status === 200) {
+        console.log('Login response:', response.data); // Log the entire response
+  
         // Store the token and admin status
         login({
           token: response.data.token,
-          is_admin: response.data.is_admin,
+          is_admin: response.data.is_admin,  // Log this as well
         });
       } else {
         setErrorMessage(response.data.error || 'Login failed');
@@ -32,18 +34,18 @@ const Login = () => {
       setErrorMessage(error.response?.data?.error || 'An unknown error occurred');
     }
   };
+  
 
   useEffect(() => {
-    // Redirect based on admin status after successful login
-    if (token) {
+    if (token && isAdmin !== undefined) {
       if (isAdmin) {
-        navigate('/admin');  // Admin page
+        navigate('/AdminHomePage.js');
       } else {
-        navigate('/HomePage');  // Regular user home page
+        navigate('/HomePage');
       }
     }
-  }, [token, isAdmin, navigate]);  // Dependency array: redirects when token or isAdmin state changes
-
+  }, [token, isAdmin, navigate]);
+  
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">

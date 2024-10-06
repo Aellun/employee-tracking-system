@@ -1,47 +1,17 @@
-.home-page {
-    font-family: Arial, sans-serif; /* Change font as needed */
-    padding: 20px;
-    background-color: #f9f9f9; /* Light background color */
-    color: #333; /* Dark text color */
-  }
-  
-  .navbar {
-    background-color: #4CAF50; /* Green background for navbar */
-    padding: 15px;
-    border-radius: 5px;
-  }
-  
-  .navbar ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    display: flex; /* Use flexbox for horizontal alignment */
-    gap: 20px; /* Space between links */
-  }
-  
-  .navbar li {
-    display: inline; /* Display list items inline */
-  }
-  
-  .navbar a {
-    color: white; /* White text color for links */
-    text-decoration: none; /* Remove underline from links */
-    font-weight: bold; /* Make text bold */
-  }
-  
-  .navbar a:hover {
-    text-decoration: underline; /* Underline links on hover */
-  }
-  
-  .content {
-    margin-top: 20px; /* Space between navbar and content */
-  }
-  
-  .content h1 {
-    font-size: 2em; /* Larger font for heading */
-  }
-  
-  .content p {
-    font-size: 1.2em; /* Slightly larger text for paragraph */
-  }
-  
+/* HomePage.css */
+
+/* This class can be used to adjust the height of the content area */
+.content {
+  min-height: calc(100vh - 4rem); /* Adjust according to the height of your navbar */
+}
+
+/* Optional: Customize the welcome heading */
+.welcome-heading {
+  font-size: 2.5rem; /* You can adjust the font size */
+}
+
+/* Optional: Customize the paragraph text */
+.welcome-text {
+  font-size: 1.125rem; /* You can adjust the font size */
+  line-height: 1.6; /* Adjust line height for better readability */
+}
