@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Employee(models.Model):
     first_name = models.CharField(max_length=50)
@@ -37,16 +38,32 @@ class TimeEntry(models.Model):
 
 class ClockInRecord(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    clock_in_time = models.DateTimeField()
-    clock_out_time = models.DateTimeField(null=True, blank=True)  # clock out is optional initially
-    total_hours = models.FloatField(default=0)
-    extra_hours = models.FloatField(default=0)
-    job_name = models.CharField(max_length=255, null=True, blank=True)
-    notes = models.TextField(null=True, blank=True)
+    time_clocked_in = models.DateTimeField(default=timezone.now)
+    time_clocked_out = models.DateTimeField(null=True, blank=True)
+    hours_worked = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
-class Break(models.Model):
-    clock_in_record = models.ForeignKey(ClockInRecord, on_delete=models.CASCADE, related_name="breaks")
-    break_type = models.CharField(max_length=50)
-    break_start = models.DateTimeField()
-    break_end = models.DateTimeField(null=True, blank=True)  # end time is optional initially
-    break_notes = models.TextField()
+    def __str__(self):
+        return f'{self.user.username} - {self.time_clocked_in}'
+
+class JobRecord(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    job_name = models.CharField(max_length=100)
+    clock_in_record = models.ForeignKey(ClockInRecord, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.job_name} by {self.user.username}'
+
+class BreakRecord(models.Model):
+    BREAK_CHOICES = (
+        ('tea', 'Tea Break'),
+        ('lunch', 'Lunch Break'),
+    )
+    clock_in_record = models.ForeignKey(ClockInRecord, on_delete=models.CASCADE)
+    break_type = models.CharField(max_length=20, choices=BREAK_CHOICES)
+    break_notes = models.TextField(blank=True, null=True)
+    time_started = models.DateTimeField(default=timezone.now)
+    time_ended = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.break_type} by {self.clock_in_record.user.username}'

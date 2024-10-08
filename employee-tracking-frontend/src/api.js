@@ -1,34 +1,46 @@
-import axios from 'axios';  
+// src/api/index.js
 
-// Function to get the CSRF token  
-const getCSRFToken = () => {  
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');  
-    return csrfToken;  
-};  
+import axios from 'axios';
 
-// Generic API request function  
-const apiRequest = (url, data) => {  
-    const csrfToken = getCSRFToken();  
+// Base URL (adjust this to point to your backend)
+const API_URL = 'http://localhost:8000/api/'; // Replace with your actual backend URL
 
-    return axios.post(url, data, {  
-        headers: {  
-            'X-CSRFToken': csrfToken,  
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`  
-        }  
-    });  
-};  
+// Set up CSRF token for secure requests
+const getCSRFToken = () => {
+    let csrfToken = null;
+    document.cookie.split(';').forEach(cookie => {
+        const [name, value] = cookie.split('=');
+        if (name.trim() === 'csrftoken') csrfToken = value;
+    });
+    return csrfToken;
+};
 
-// Function to clock in  
-export const clockInRecord = (recordId) => {  
-    return apiRequest(`http://localhost:8000/api/clock-in-records/${recordId}/clock_in/`, {});  
-};  
+// Function to clock in
+export const clockInRecord = (recordId) => {
+    const csrfToken = getCSRFToken();
+    return axios.post(
+        `${API_URL}clock-in/`, // Adjust to your backend endpoint
+        { record_id: recordId },
+        { headers: { 'X-CSRFToken': csrfToken } }
+    );
+};
 
-// Function to clock out  
-export const clockOutRecord = (recordId) => {  
-    return apiRequest(`http://localhost:8000/api/clock-in-records/${recordId}/clock_out/`, {});  
-};  
+// Function to clock out
+export const clockOutRecord = (recordId) => {
+    const csrfToken = getCSRFToken();
+    return axios.post(
+        `${API_URL}clock-out/`, // Adjust to your backend endpoint
+        { record_id: recordId },
+        { headers: { 'X-CSRFToken': csrfToken } }
+    );
+};
 
-// Function to take a break  
-export const takeBreakRecord = (recordId, breakType, breakNotes) => {  
-    return apiRequest(`http://localhost:8000/api/clock-in-records/${recordId}/take_break/`, { break_type: breakType, break_notes: breakNotes });  
+// Function to take a break
+export const takeBreakRecord = (recordId, breakType, notes) => {
+    const csrfToken = getCSRFToken();
+    return axios.post(
+        `${API_URL}take-break/`, // Adjust to your backend endpoint
+        { record_id: recordId, break_type: breakType, notes },
+        { headers: { 'X-CSRFToken': csrfToken } }
+    );
 };

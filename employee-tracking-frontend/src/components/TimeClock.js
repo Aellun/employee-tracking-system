@@ -64,48 +64,74 @@ const ClockInSection = () => {
         return () => clearInterval(interval);  
     }, []);  
 
-    const handleClockIn = () => {  
-        const csrfToken = getCSRFToken();  
-        clockInRecord(recordId, csrfToken)  
-            .then(response => {  
-                console.log(response.data);  
-                setIsClockedIn(true);  
-                toast.success('Clocked In Successfully');  
-            })  
-            .catch(error => {  
-                console.error(error);  
-                toast.error('Error clocking in. Please try again.');  
-            });  
-    };  
+    const handleClockIn = () => {
+        const token = localStorage.getItem('token');  // Retrieve token from localStorage
+        if (!token) {
+            console.log("Token from localStorage:", token);
+            toast.error('Authentication token not found. Please log in again.');
+            return;
+        }
+    
+        // Prepare the data to be sent
+        const clockInData = { record_id: recordId }; // Replace with your actual data structure
+        console.log("Data being sent to backend:", clockInData);  // Log the data
+        
+        console.log("Request Headers:", {
+            Authorization: `Token ${token}`
+        });
+        
+        console.log("Sending request to:", "http://localhost:8000/api/clock-in/");
+        console.log("Headers:", {
+        Authorization: `Token ${token}`,
+        'Content-Type': 'application/json',
+        });
 
-    const handleClockOut = () => {  
-        const csrfToken = getCSRFToken();  
-        clockOutRecord(recordId, csrfToken)  
-            .then(response => {  
-                console.log(response.data);  
-                setIsClockedIn(false);  
-                toast.success('Clocked Out Successfully');  
-            })  
-            .catch(error => {  
-                console.error(error);  
-                toast.error('Error clocking out. Please try again.');  
-            });  
-    };  
 
-    const handleTakeBreak = () => {  
-        const csrfToken = getCSRFToken();  
-        takeBreakRecord(recordId, breakType, breakNotes, csrfToken)  
-            .then(response => {  
-                console.log(response.data);  
-                setBreakType("");  // Reset break type
-                setBreakNotes(""); // Reset break notes
-                toast.success('Break Taken Successfully');  
-            })  
-            .catch(error => {  
-                console.error(error);  
-                toast.error('Error taking break. Please try again.');  
-            });  
-    };  
+        clockInRecord(clockInData, {
+            headers: {
+                'Authorization': `Token ${token}`  // Add token to the Authorization header
+            }
+        })
+        .then(response => {
+            console.log("Response from backend:", response.data); // Log the response data
+            setIsClockedIn(true);
+            toast.success('Clocked In Successfully');
+        })
+        .catch(error => {
+            console.error("Error clocking in:", error); // Log the error
+            toast.error('Error clocking in. Please try again.');
+        });
+    };
+     
+    
+    
+    const handleClockOut = () => {
+        clockOutRecord(recordId)
+            .then(response => {
+                console.log(response.data);
+                setIsClockedIn(false);
+                toast.success('Clocked Out Successfully');
+            })
+            .catch(error => {
+                console.error(error);
+                toast.error('Error clocking out. Please try again.');
+            });
+    };
+    
+    const handleTakeBreak = () => {
+        takeBreakRecord(recordId, breakType, breakNotes)
+            .then(response => {
+                console.log(response.data);
+                setBreakType("");
+                setBreakNotes("");
+                toast.success('Break Taken Successfully');
+            })
+            .catch(error => {
+                console.error(error);
+                toast.error('Error taking break. Please try again.');
+            });
+    };
+      
 
     return (  
         <div className="max-w-md mx-auto p-6 border rounded-lg shadow-lg bg-white">  

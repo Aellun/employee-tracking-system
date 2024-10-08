@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Employee, Project, Task, TimeEntry,ClockInRecord, Break
+from .models import Employee, Project, Task, TimeEntry, ClockInRecord, BreakRecord
 from django.contrib.auth.models import User
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -22,17 +22,20 @@ class TimeEntrySerializer(serializers.ModelSerializer):
         model = TimeEntry
         fields = '__all__'
 
-class BreakSerializer(serializers.ModelSerializer):
+class BreakRecordSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Break
-        fields = '__all__'
+        model = BreakRecord
+        fields = ['break_type', 'break_notes', 'start_time', 'end_time', 'duration']  # Include relevant fields
 
 class ClockInRecordSerializer(serializers.ModelSerializer):
-    breaks = BreakSerializer(many=True, read_only=True)
+    breaks = BreakRecordSerializer(many=True, read_only=True)  # Fetch associated break records
+    total_hours = serializers.FloatField(read_only=True)
+    extra_hours = serializers.FloatField(read_only=True)
+    user = serializers.StringRelatedField()  # Display user by username or email
 
     class Meta:
         model = ClockInRecord
-        fields = '__all__'
+        fields = ['id', 'clock_in_time', 'clock_out_time', 'total_hours', 'extra_hours', 'job_name', 'notes', 'user', 'breaks']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
