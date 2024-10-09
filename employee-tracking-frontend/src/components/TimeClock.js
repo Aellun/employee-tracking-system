@@ -76,16 +76,24 @@ const ClockInSeconds = () => {
       toast.error('You are not currently clocked in.');
       return;
     }
-
+  
+    if (!breakNotes) {
+      toast.error('Please add notes before clocking out.');
+      return;
+    }
+  
     try {
       await clockOutRecord(authToken, recordId);
+      const clockOutTime = new Date().toLocaleTimeString();
+      setClockInMessage(`clocked out at ${clockOutTime}`);
       setIsClockedIn(false);
       setClockOutTime(new Date().toISOString());
-      toast.success(`Clocked Out Successfully at ${new Date().toLocaleTimeString()}`);
-    } catch {
+      toast.success(`Clocked Out Successfully at ${clockOutTime}`);
+      setBreakNotes(''); // Optional: clear break notes after clocking out
+    } catch (error) {
       toast.error('Error clocking out. Please try again.');
     }
-  }, [isClockedIn, recordId]);
+  }, [isClockedIn, recordId, breakNotes]);
 
   // Take a break functionality
   const handleTakeBreak = useCallback(async () => {
