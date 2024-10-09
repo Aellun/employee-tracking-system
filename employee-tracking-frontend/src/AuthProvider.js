@@ -4,9 +4,8 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [token, setToken] = useState(localStorage.getItem('authToken') || null); // Store token in state
+  const [token, setToken] = useState(localStorage.getItem('authToken') || null);
 
-  // Sync token from localStorage if updated elsewhere (in case)
   useEffect(() => {
     const storedToken = localStorage.getItem('authToken');
     if (storedToken) {
@@ -15,12 +14,11 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData) => {
-    console.log('Login called with:', userData); // Log the incoming userData
-    localStorage.setItem('authToken', userData.token); // Store token under "authToken"
-    setToken(userData.token); // Set token in state
-    setIsAdmin(userData.is_admin); // Set admin status based on backend response
+    console.log('Login called with:', userData);
+    localStorage.setItem('authToken', userData.token);
+    setToken(userData.token);
+    setIsAdmin(userData.is_admin);
 
-    // Log values after setting them
     console.log('Token set in localStorage:', localStorage.getItem('authToken'));
     console.log('Token set in state:', userData.token);
     console.log('Admin status set in state:', userData.is_admin);
@@ -28,11 +26,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     console.log('Logout called');
-    localStorage.removeItem('authToken'); // Remove token from localStorage
-    setToken(null); // Clear token from state
-    setIsAdmin(false); // Reset admin status
-
-    // Log values after state has been cleared
+    localStorage.removeItem('authToken');
+    setToken(null);
+    setIsAdmin(false);
     console.log('Token removed from localStorage');
   };
 

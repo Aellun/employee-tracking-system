@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 class Employee(models.Model):
     first_name = models.CharField(max_length=50)
@@ -36,6 +37,10 @@ class TimeEntry(models.Model):
     def __str__(self):
         return f"{self.employee} - {self.task}"
 
+    def clean(self):
+        if self.end_time and self.start_time and self.end_time < self.start_time:
+            raise ValidationError("End time must be after start time.")
+
 class ClockInRecord(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     time_clocked_in = models.DateTimeField(default=timezone.now)
@@ -44,7 +49,13 @@ class ClockInRecord(models.Model):
     extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
     def __str__(self):
-        return f'{self.user.username} - {self.time_clocked_in}'
+        return f'{self.user.username} - {self.time_clocked_in.strftime("%Y-%m-%d %H:%M:%S")}'
+
+    def save(self, *args, **kwargs):
+        if self.time_clocked_out:
+            worked_duration = (self.time_clocked_out - self.time_clocked_in).total_seconds() / 3600
+            self.hours_worked = round(worked_duration, 2)
+        super().save(*args, **kwargs)
 
 class JobRecord(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -67,3 +78,14 @@ class BreakRecord(models.Model):
 
     def __str__(self):
         return f'{self.break_type} by {self.clock_in_record.user.username}'
+
+    def clean(self):
+        if self.time_ended and self.time_started and self.time_ended < self.time_started:
+            raise ValidationError("End time must be after start time for the break.")
+
+    def duration(self):
+        """Calculate the duration of the break in hours."""
+        if self.time_ended and self.time_started:
+            duration = (self.time_ended - self.time_started).total_seconds() / 3600
+            return round(duration, 2)
+        return 0
