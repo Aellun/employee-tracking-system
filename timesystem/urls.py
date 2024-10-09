@@ -9,6 +9,7 @@ from .views import(
     TaskViewSet, 
     TimeEntryViewSet, 
     take_break,
+    end_break,
     clock_out,
     clock_in,
     LoginView
@@ -32,5 +33,7 @@ urlpatterns = [
     path('api/clock-out/', clock_out, name='clock_out'), 
     path('api/take-break/', take_break, name='take_break'),
     path('api/test-auth/', SimpleAuthView.as_view(), name='test_auth'),
+    path('api/take-break/', take_break, name='take_break'),
+    path('api/end-break/', end_break, name='end_break'),
           
 ]

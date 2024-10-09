@@ -126,22 +126,50 @@ def clock_out(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def take_break(request):
+    print("Request data:", request.data)  # Add this line to check what data is being received
     record_id = request.data.get('record_id')
     break_type = request.data.get('break_type')
-    break_notes = request.data.get('break_notes')
-    
+    break_notes = request.data.get('break_notes', '')
+
     try:
-        record = ClockInRecord.objects.get(id=record_id, user=request.user)
+        clock_in_record = ClockInRecord.objects.get(id=record_id, user=request.user)
         break_record = BreakRecord.objects.create(
-            clock_in_record=record,
+            clock_in_record=clock_in_record,
             break_type=break_type,
             break_notes=break_notes,
             time_started=timezone.now()
         )
-        return Response({'message': 'Break started successfully', 'break_id': break_record.id}, status=status.HTTP_201_CREATED)
+        return Response({
+            'message': 'Break started successfully',
+            'break_id': break_record.id
+        }, status=status.HTTP_201_CREATED)
+
     except ClockInRecord.DoesNotExist:
-        return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Clock-in record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def end_break(request):
+    try:
+        # Fetch the break record by ID
+        break_id = request.data.get('break_id')
+        break_record = BreakRecord.objects.get(id=break_id, clock_in_record__user=request.user, time_ended__isnull=True)
+
+        # Set the time_ended field
+        break_record.time_ended = timezone.now()
+        break_record.save()
+
+        # Calculate break duration
+        duration = break_record.duration()
+
+        return Response({
+            'message': 'Break ended successfully',
+            'break_id': break_record.id,
+            'break_duration': duration
+        }, status=status.HTTP_200_OK)
     
+    except BreakRecord.DoesNotExist:
+        return Response({'error': 'Break record not found or already ended'}, status=status.HTTP_404_NOT_FOUND)
 
 class SimpleAuthView(APIView):
     permission_classes = [IsAuthenticated]
