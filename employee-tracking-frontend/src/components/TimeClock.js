@@ -37,14 +37,20 @@ const ClockInSeconds = () => {
 
   // Clock in functionality
   const handleClockIn = useCallback(async () => {
+    // Check if the user is already clocked in
+    if (isClockedIn) {
+      toast.error('You are already clocked in. Please clock out before clocking in again.');
+      return; // Prevent further execution if already clocked in
+    }
+  
     const authToken = getAuthToken();
     // const email = localStorage.getItem('email');
-
+  
     if (!authToken) {
       toast.error('Authentication token not found. Please log in again.');
       return;
     }
-
+  
     try {
       const response = await clockInRecord(authToken);
       if (response && response.message === 'Clocked in successfully') {
@@ -60,7 +66,8 @@ const ClockInSeconds = () => {
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Error clocking in. Please try again.');
     }
-  }, []);
+  }, [isClockedIn]); // Add isClockedIn as a dependency
+  
 
   // Clock out functionality
   const handleClockOut = useCallback(async () => {
@@ -122,7 +129,7 @@ const ClockInSeconds = () => {
         <button
           onClick={handleClockIn}
           className="bg-blue-500 text-white py-2 px-4 rounded"
-          disabled={isClockedIn || !getAuthToken()}
+          disabled={isClockedIn || !getAuthToken()} // Disable if already clocked in
         >
           Clock In
         </button>
