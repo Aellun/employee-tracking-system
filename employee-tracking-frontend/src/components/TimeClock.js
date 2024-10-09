@@ -6,17 +6,26 @@ import { clockInRecord, clockOutRecord, takeBreakRecord } from '../api';
 // Helper to fetch auth token
 const getAuthToken = () => localStorage.getItem('authToken');
 
+// Helper to format time in hh:mm:ss
+const formatTime = (totalSeconds) => {
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+
 // Helper to calculate total hours worked
 const calculateTotalHours = (clockInTime, clockOutTime) => {
   const startTime = new Date(clockInTime);
-  const endTime = new Date(clockOutTime);
-  return Math.floor((endTime - startTime) / (1000 * 60 * 60));
+  const endTime = clockOutTime ? new Date(clockOutTime) : new Date();
+  const diffMs = endTime - startTime;
+  return Math.floor(diffMs / 1000); // Return time in seconds
 };
 
 // Helper to calculate extra hours beyond 8
-const calculateExtraHours = (totalHours) => {
-  const overtimeThreshold = 8;
-  return totalHours > overtimeThreshold ? totalHours - overtimeThreshold : 0;
+const calculateExtraHours = (totalTimeInSeconds) => {
+  const overtimeThresholdInSeconds = 8 * 3600; // 8 hours in seconds
+  return totalTimeInSeconds > overtimeThresholdInSeconds ? totalTimeInSeconds - overtimeThresholdInSeconds : 0; // Return seconds
 };
 
 const ClockInSeconds = () => {
@@ -29,6 +38,16 @@ const ClockInSeconds = () => {
   const [breakNotes, setBreakNotes] = useState('');
   const [clockInMessage, setClockInMessage] = useState('');
 
+  // Calculate total time in seconds
+  const totalTimeInSeconds = isClockedIn
+    ? Math.floor((new Date().getTime() - new Date(clockInTime).getTime()) / 1000) // Total time in seconds
+    : calculateTotalHours(clockInTime, clockOutTime);
+
+  // Format total and extra hours
+  const formattedTotalHours = formatTime(totalTimeInSeconds);
+  const extraTimeInSeconds = calculateExtraHours(totalTimeInSeconds);
+  const formattedExtraHours = formatTime(extraTimeInSeconds);
+
   // Update current time every second
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -37,37 +56,33 @@ const ClockInSeconds = () => {
 
   // Clock in functionality
   const handleClockIn = useCallback(async () => {
-    // Check if the user is already clocked in
     if (isClockedIn) {
       toast.error('You are already clocked in. Please clock out before clocking in again.');
       return; // Prevent further execution if already clocked in
     }
-  
+
     const authToken = getAuthToken();
-    // const email = localStorage.getItem('email');
-  
     if (!authToken) {
       toast.error('Authentication token not found. Please log in again.');
       return;
     }
-  
+
     try {
       const response = await clockInRecord(authToken);
       if (response && response.message === 'Clocked in successfully') {
         setRecordId(response.record_id);
         setIsClockedIn(true);
         setClockInTime(new Date().toISOString());
-        const clockInTime = new Date().toLocaleTimeString();
-        setClockInMessage(` clocked in at ${clockInTime}`);
-        toast.success(`Clocked In Successfully at ${clockInTime}`);
+        const clockInTimeFormatted = new Date().toLocaleTimeString();
+        setClockInMessage(` clocked in at ${clockInTimeFormatted}`);
+        toast.success(`Clocked In Successfully at ${clockInTimeFormatted}`);
       } else {
         toast.error('Error clocking in. Please try again.');
       }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Error clocking in. Please try again.');
     }
-  }, [isClockedIn]); // Add isClockedIn as a dependency
-  
+  }, [isClockedIn]);
 
   // Clock out functionality
   const handleClockOut = useCallback(async () => {
@@ -76,19 +91,19 @@ const ClockInSeconds = () => {
       toast.error('You are not currently clocked in.');
       return;
     }
-  
+
     if (!breakNotes) {
       toast.error('Please add notes before clocking out.');
       return;
     }
-  
+
     try {
       await clockOutRecord(authToken, recordId);
-      const clockOutTime = new Date().toLocaleTimeString();
-      setClockInMessage(`clocked out at ${clockOutTime}`);
+      const clockOutTimeFormatted = new Date().toLocaleTimeString();
+      setClockInMessage(`clocked out at ${clockOutTimeFormatted}`);
       setIsClockedIn(false);
       setClockOutTime(new Date().toISOString());
-      toast.success(`Clocked Out Successfully at ${clockOutTime}`);
+      toast.success(`Clocked Out Successfully at ${clockOutTimeFormatted}`);
       setBreakNotes(''); // Optional: clear break notes after clocking out
     } catch (error) {
       toast.error('Error clocking out. Please try again.');
@@ -113,11 +128,12 @@ const ClockInSeconds = () => {
     }
   }, [isClockedIn, recordId, breakType, breakNotes]);
 
+  // Calculate total hours and extra hours
   const totalHours = isClockedIn
-    ? calculateTotalHours(clockInTime, new Date().toISOString())
-    : calculateTotalHours(clockInTime, clockOutTime);
+    ? formatTime(totalTimeInSeconds)
+    : formatTime(calculateTotalHours(clockInTime, clockOutTime));
     
-  const extraHours = calculateExtraHours(totalHours);
+  const extraHours = formattedExtraHours;
 
   return (
     <div className="max-w-md mx-auto p-6 border rounded-lg shadow-lg bg-white">
@@ -169,7 +185,7 @@ const ClockInSeconds = () => {
         </button>
       </div>
 
-      <TimeTracking totalHours={totalHours.toFixed(2)} extraHours={extraHours.toFixed(2)} />
+      <TimeTracking totalHours={totalHours} extraHours={extraHours} />
 
       <ToastContainer />
     </div>
@@ -223,17 +239,17 @@ const BreakSelection = ({ breakType, setBreakType, breakNotes, setBreakNotes }) 
     <textarea
       value={breakNotes}
       onChange={(e) => setBreakNotes(e.target.value)}
-      placeholder="Add notes before break"
-      className="border border-gray-300 rounded p-2 w-full mt-2"
+      placeholder="Break Notes"
+      className="border rounded p-2 w-full mt-2"
     />
   </div>
 );
 
 // Time Tracking component
 const TimeTracking = ({ totalHours, extraHours }) => (
-  <div className="mt-6">
-    <p>Total Time: <span className="font-bold">{totalHours} hrs</span></p>
-    <p>Extra Hours: <span className="font-bold">{extraHours} hrs</span></p>
+  <div className="mt-4">
+    <p>Total Hours: {totalHours}</p>
+    <p>Extra Hours: {extraHours}</p>
   </div>
 );
 
