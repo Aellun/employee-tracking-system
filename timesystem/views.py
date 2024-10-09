@@ -9,7 +9,10 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import get_user_model
 from .models import (
     Employee,
     Project,
@@ -25,6 +28,20 @@ from .serializers import (
     TaskSerializer,
     TimeEntrySerializer,
 )
+
+User = get_user_model()
+
+# Custom JWT Token Serializer
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['is_admin'] = user.is_staff  # Include admin status in the token
+        return token
+
+# Custom JWT Token View
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
@@ -42,15 +59,13 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
     queryset = TimeEntry.objects.all()
     serializer_class = TimeEntrySerializer
 
-
+# Existing Login Logic
 class LoginView(APIView):
     permission_classes = [AllowAny]
+
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
-
-        # Print received token if available (debugging)
-        print(f"Token received: {request.headers.get('Authorization')}")
 
         # Get the user by email
         try:
@@ -58,7 +73,7 @@ class LoginView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Authenticate using username (since authenticate requires username)
+        # Authenticate using username
         user = authenticate(request, username=user.username, password=password)
 
         if user is not None:
@@ -66,20 +81,21 @@ class LoginView(APIView):
                 # Log the user's is_staff value for debugging purposes
                 print(f"User {user.email} is_admin (is_staff): {user.is_staff}")
 
-                # Generate or get an existing token
-                token, _ = Token.objects.get_or_create(user=user)
-                
-                # Return response with token and admin status (is_admin)
+                # Generate JWT tokens
+                refresh = RefreshToken.for_user(user)
+                access_token = str(refresh.access_token)
+
+                # Return response with access token and admin status
                 return Response({
-                    'token': token.key,
+                    'token': access_token,  # The access token to be used in further requests
                     'is_admin': user.is_staff,  # Check if the user is an admin
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'User account is disabled'}, status=status.HTTP_403_FORBIDDEN)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-        
 
+# Clock-In Endpoint
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def clock_in(request):
@@ -88,31 +104,23 @@ def clock_in(request):
     record = ClockInRecord.objects.create(user=user)
     return Response({'message': 'Clocked in successfully', 'record_id': record.id}, status=status.HTTP_201_CREATED)
 
+# Clock-Out Endpoint
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def clock_out(request):
     print("Data received from frontend:", request.data)
     record_id = request.data.get('record_id')  # Make sure this is sent in the request body
     
-    # Check if record_id is provided
     if record_id is None:
         return Response({'error': 'record_id not provided'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        # Fetch the clock-in record for the authenticated user
         record = ClockInRecord.objects.get(id=record_id, user=request.user)
-        
-        # Update the clock-out time
         record.time_clocked_out = timezone.now()
-        
-        # Calculate worked hours
         worked_hours = (record.time_clocked_out - record.time_clocked_in).total_seconds() / 3600
         record.hours_worked = round(worked_hours, 2)
-        
-        # Save the record
         record.save()
         
-        # Prepare the response data
         response_data = {
             'message': 'Clocked out successfully',
             'hours_worked': record.hours_worked
@@ -123,6 +131,7 @@ def clock_out(request):
     except ClockInRecord.DoesNotExist:
         return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
 
+# Start Break Endpoint
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def take_break(request):
@@ -147,19 +156,15 @@ def take_break(request):
     except ClockInRecord.DoesNotExist:
         return Response({'error': 'Clock-in record not found'}, status=status.HTTP_404_NOT_FOUND)
 
+# End Break Endpoint
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def end_break(request):
     try:
-        # Fetch the break record by ID
         break_id = request.data.get('break_id')
         break_record = BreakRecord.objects.get(id=break_id, clock_in_record__user=request.user, time_ended__isnull=True)
-
-        # Set the time_ended field
         break_record.time_ended = timezone.now()
         break_record.save()
-
-        # Calculate break duration
         duration = break_record.duration()
 
         return Response({
@@ -171,6 +176,7 @@ def end_break(request):
     except BreakRecord.DoesNotExist:
         return Response({'error': 'Break record not found or already ended'}, status=status.HTTP_404_NOT_FOUND)
 
+# Sample Authenticated View
 class SimpleAuthView(APIView):
     permission_classes = [IsAuthenticated]
 
