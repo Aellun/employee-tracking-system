@@ -1,22 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import TaskList from '../components/TaskList';
+// TasksPage.js
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../AuthProvider'; // Adjust the import path as necessary
 
 const TasksPage = () => {
-  const [tasks, setTasks] = useState([]);
+    const { token } = useAuth(); // Get the token from AuthProvider
+    const [tasks, setTasks] = useState([]);
+    const [error, setError] = useState(null);
 
-  useEffect(() => {
-    axios.get('http://127.0.0.1:8000/api/tasks/')  // Django API endpoint for tasks
-      .then(response => setTasks(response.data))
-      .catch(error => console.error('Error fetching tasks:', error));
-  }, []);
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/tasks/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
 
-  return (
-    <div>
-      <h1>Task List</h1>
-      <TaskList tasks={tasks} />
-    </div>
-  );
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                setTasks(data); // Set the tasks data to state
+            } catch (error) {
+                setError(error.message); // Handle any errors
+            }
+        };
+
+        if (token) {
+            fetchTasks(); // Fetch tasks only if token exists
+        }
+    }, [token]); // Dependency on token to refetch if it changes
+
+    // Render the tasks or any error message
+    return (
+        <div>
+            <h1>Your Tasks</h1>
+            {error && <p>Error: {error}</p>}
+            <ul>
+                {tasks.map(task => (
+                    <li key={task.id}>{task.name}</li>
+                ))}
+            </ul>
+        </div>
+    );
 };
 
 export default TasksPage;
