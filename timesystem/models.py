@@ -20,10 +20,16 @@ class Project(models.Model):
         return self.name
 
 class Task(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('In_Progress', 'In_Progress'),
+    ]
+    
     name = models.CharField(max_length=255)
     description = models.TextField()
     due_date = models.DateTimeField(null=True, blank=True)
-    completed = models.BooleanField(default=False)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
 
     def __str__(self):

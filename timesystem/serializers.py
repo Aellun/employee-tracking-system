@@ -15,7 +15,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ['id', 'name', 'description', 'due_date', 'completed', 'assigned_to']
+        fields = ['id', 'name', 'description', 'due_date', 'status', 'assigned_to']
 
 class TimeEntrySerializer(serializers.ModelSerializer):
     class Meta:
