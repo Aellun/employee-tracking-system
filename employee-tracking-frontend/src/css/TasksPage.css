@@ -1,0 +1,46 @@
+.custom-task-container {
+    max-width: 60%;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f9f9f9; /* Light grey background */
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .custom-task-button {
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+  }
+  
+  .bg-light-green {
+    background-color: #c6f6d5; /* Light green */
+  }
+  
+  .bg-blue {
+    background-color: #bee3f8; /* Light blue */
+  }
+  
+  .bg-light-grey {
+    background-color: #e2e8f0; /* Light grey */
+  }
+  
+  .bg-light-orange {
+    background-color: #fbd38d; /* Light orange */
+  }
+  
+  .font-large {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+  
+  .font-medium {
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+  
+  .font-small {
+    font-size: 1rem;
+  }
+  
