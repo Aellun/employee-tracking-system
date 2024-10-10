@@ -20,6 +20,7 @@ const ClockInSeconds = () => {
   const [breakExceeded, setBreakExceeded] = useState(false);
   const [totalHours, setTotalHours] = useState(0);
   const [workingSeconds, setWorkingSeconds] = useState(0); // Track working seconds
+  const [clockInMessage, setClockInMessage] = useState(''); // Track clock-in message
 
   // Update working seconds every second when clocked in and no break is active
   useEffect(() => {
@@ -53,6 +54,8 @@ const ClockInSeconds = () => {
         setRecordId(response.record_id);
         setIsClockedIn(true);
         setClockInTime(new Date());
+        setWorkingSeconds(0); // Reset total working time on new clock-in
+        setClockInMessage(`Clocked in at ${new Date().toLocaleTimeString()}`);
         toast.success(`Clocked in at ${new Date().toLocaleTimeString()}`);
       } else {
         toast.error('Clock-in failed.');
@@ -70,16 +73,22 @@ const ClockInSeconds = () => {
       return;
     }
 
+    if (!breakNotes) {
+      toast.error('Please add notes before clocking out.');
+      return;
+    }
+
     try {
       await clockOutRecord(authToken, recordId);
       setIsClockedIn(false);
       setClockOutTime(new Date());
       setTotalHours(workingSeconds); // Finalize total hours
+      setClockInMessage(''); // Clear the message after clock-out
       toast.success(`Clocked out at ${new Date().toLocaleTimeString()}`);
     } catch {
       toast.error('Error clocking out. Please try again.');
     }
-  }, [isClockedIn, recordId, workingSeconds]);
+  }, [isClockedIn, recordId, workingSeconds, breakNotes]);
 
   // Break handling
   const handleTakeBreak = useCallback(async () => {
@@ -103,6 +112,7 @@ const ClockInSeconds = () => {
     setBreakActive(false);
     setBreakDuration(0);
     setBreakExceeded(false);
+    setClockInMessage(''); // Clear the message after ending break
     toast.success('Break ended.');
   };
 
@@ -114,6 +124,7 @@ const ClockInSeconds = () => {
       <div className="text-center mt-4">
         <p className="text-lg">{new Date().toLocaleTimeString()}</p>
       </div>
+      {clockInMessage && <p className="text-center text-sm text-green-600">{clockInMessage}</p>}
 
       {/* Clock in/out buttons */}
       <div className="mt-6 flex justify-between">
@@ -220,7 +231,7 @@ const BreakSelection = ({ breakType, setBreakType, breakNotes, setBreakNotes, ha
     <button
       onClick={handleTakeBreak}
       className="bg-purple-500 text-white py-2 px-4 rounded mt-2"
-      disabled={breakActive || !breakType || !breakNotes}
+      disabled={breakActive}
     >
       Take Break
     </button>
@@ -230,8 +241,9 @@ const BreakSelection = ({ breakType, setBreakType, breakNotes, setBreakNotes, ha
 // Time Tracking Component
 const TimeTracking = ({ totalHours, breakDuration }) => (
   <div className="mt-4">
-    <p>Total Hours: {formatTime(totalHours)}</p>
-    <p>Break Duration: {formatTime(breakDuration)}</p>
+    <h4 className="font-bold text-lg">Time Tracking</h4>
+    <p>Total Working Hours: {formatTime(totalHours)}</p>
+    <p>Current Break Duration: {formatTime(breakDuration)}</p>
   </div>
 );
 
