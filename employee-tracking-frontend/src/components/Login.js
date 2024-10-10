@@ -28,6 +28,7 @@ const Login = () => {
         // Store the token and admin status
         login({
           token: response.data.token,
+          username: response.data.username,
           is_admin: response.data.is_admin,
         });
       } else {

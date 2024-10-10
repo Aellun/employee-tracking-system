@@ -88,6 +88,7 @@ class LoginView(APIView):
                 return Response({
                     'token': access_token,  # The access token to be used in further requests
                     'is_admin': user.is_staff,  # Check if the user is an admin
+                    'username': user.username,
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'User account is disabled'}, status=status.HTTP_403_FORBIDDEN)

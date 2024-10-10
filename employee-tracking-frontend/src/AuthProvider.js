@@ -16,12 +16,14 @@ export const AuthProvider = ({ children }) => {
   const login = (userData) => {
     console.log('Login called with:', userData);
     localStorage.setItem('authToken', userData.token);
+    localStorage.setItem('username', userData.username);
     setToken(userData.token);
     setIsAdmin(userData.is_admin);
 
     console.log('Token set in localStorage:', localStorage.getItem('authToken'));
     console.log('Token set in state:', userData.token);
     console.log('Admin status set in state:', userData.is_admin);
+    console.log('Username set in localStorage:', localStorage.getItem('username'));
   };
 
   const logout = () => {
