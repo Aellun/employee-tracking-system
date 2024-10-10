@@ -3,196 +3,171 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { clockInRecord, clockOutRecord, takeBreakRecord } from '../api';
 
-// Helper to fetch auth token
+// Helper functions
 const getAuthToken = () => localStorage.getItem('authToken');
+const formatTime = (seconds) => new Date(seconds * 1000).toISOString().substr(11, 8);
 
-// Helper to format time in hh:mm:ss
-const formatTime = (totalSeconds) => {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-};
-
-// Helper to calculate total hours worked
-const calculateTotalHours = (clockInTime, clockOutTime) => {
-  const startTime = new Date(clockInTime);
-  const endTime = clockOutTime ? new Date(clockOutTime) : new Date();
-  const diffMs = endTime - startTime;
-  return Math.floor(diffMs / 1000); // Return time in seconds
-};
-
-// Helper to calculate extra hours beyond 8
-const calculateExtraHours = (totalTimeInSeconds) => {
-  const overtimeThresholdInSeconds = 8 * 3600; // 8 hours in seconds
-  return totalTimeInSeconds > overtimeThresholdInSeconds ? totalTimeInSeconds - overtimeThresholdInSeconds : 0; // Return seconds
-};
-
+// ClockInSeconds Component
 const ClockInSeconds = () => {
   const [isClockedIn, setIsClockedIn] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [clockInTime, setClockInTime] = useState(null);
+  const [clockOutTime, setClockOutTime] = useState(null);
   const [recordId, setRecordId] = useState(null);
-  const [clockInTime, setClockInTime] = useState('');
-  const [clockOutTime, setClockOutTime] = useState('');
+  const [breakActive, setBreakActive] = useState(false);
   const [breakType, setBreakType] = useState('');
   const [breakNotes, setBreakNotes] = useState('');
-  const [clockInMessage, setClockInMessage] = useState('');
+  const [breakDuration, setBreakDuration] = useState(0);
+  const [breakExceeded, setBreakExceeded] = useState(false);
+  const [totalHours, setTotalHours] = useState(0);
+  const [workingSeconds, setWorkingSeconds] = useState(0); // Track working seconds
 
-  // Calculate total time in seconds
-  const totalTimeInSeconds = isClockedIn
-    ? Math.floor((new Date().getTime() - new Date(clockInTime).getTime()) / 1000) // Total time in seconds
-    : calculateTotalHours(clockInTime, clockOutTime);
-
-  // Format total and extra hours
-  const formattedTotalHours = formatTime(totalTimeInSeconds);
-  const extraTimeInSeconds = calculateExtraHours(totalTimeInSeconds);
-  const formattedExtraHours = formatTime(extraTimeInSeconds);
-
-  // Update current time every second
+  // Update working seconds every second when clocked in and no break is active
   useEffect(() => {
-    const interval = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Clock in functionality
-  const handleClockIn = useCallback(async () => {
-    if (isClockedIn) {
-      toast.error('You are already clocked in. Please clock out before clocking in again.');
-      return; // Prevent further execution if already clocked in
+    if (isClockedIn && !breakActive) {
+      const interval = setInterval(() => {
+        setWorkingSeconds((prev) => prev + 1);
+      }, 1000);
+      return () => clearInterval(interval);
     }
+  }, [isClockedIn, breakActive]);
 
+  useEffect(() => {
+    if (breakActive) {
+      setBreakExceeded(false);
+      const interval = setInterval(() => setBreakDuration((prev) => prev + 1), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [breakActive]);
+
+  // Clock in handler
+  const handleClockIn = useCallback(async () => {
     const authToken = getAuthToken();
-    if (!authToken) {
-      toast.error('Authentication token not found. Please log in again.');
+    if (isClockedIn || !authToken) {
+      toast.error('Already clocked in or authentication failed.');
       return;
     }
 
     try {
       const response = await clockInRecord(authToken);
-      if (response && response.message === 'Clocked in successfully') {
+      if (response?.message === 'Clocked in successfully') {
         setRecordId(response.record_id);
         setIsClockedIn(true);
-        setClockInTime(new Date().toISOString());
-        const clockInTimeFormatted = new Date().toLocaleTimeString();
-        setClockInMessage(` clocked in at ${clockInTimeFormatted}`);
-        toast.success(`Clocked In Successfully at ${clockInTimeFormatted}`);
+        setClockInTime(new Date());
+        toast.success(`Clocked in at ${new Date().toLocaleTimeString()}`);
       } else {
-        toast.error('Error clocking in. Please try again.');
+        toast.error('Clock-in failed.');
       }
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Error clocking in. Please try again.');
+    } catch {
+      toast.error('Error clocking in. Please try again.');
     }
   }, [isClockedIn]);
 
-  // Clock out functionality
+  // Clock out handler
   const handleClockOut = useCallback(async () => {
     const authToken = getAuthToken();
-    if (!isClockedIn) {
-      toast.error('You are not currently clocked in.');
-      return;
-    }
-
-    if (!breakNotes) {
-      toast.error('Please add notes before clocking out.');
+    if (!isClockedIn || !authToken) {
+      toast.error('You are not clocked in or authentication failed.');
       return;
     }
 
     try {
       await clockOutRecord(authToken, recordId);
-      const clockOutTimeFormatted = new Date().toLocaleTimeString();
-      setClockInMessage(`clocked out at ${clockOutTimeFormatted}`);
       setIsClockedIn(false);
-      setClockOutTime(new Date().toISOString());
-      toast.success(`Clocked Out Successfully at ${clockOutTimeFormatted}`);
-      setBreakNotes(''); // Optional: clear break notes after clocking out
-    } catch (error) {
+      setClockOutTime(new Date());
+      setTotalHours(workingSeconds); // Finalize total hours
+      toast.success(`Clocked out at ${new Date().toLocaleTimeString()}`);
+    } catch {
       toast.error('Error clocking out. Please try again.');
     }
-  }, [isClockedIn, recordId, breakNotes]);
+  }, [isClockedIn, recordId, workingSeconds]);
 
-  // Take a break functionality
+  // Break handling
   const handleTakeBreak = useCallback(async () => {
     const authToken = getAuthToken();
-    if (!isClockedIn || !breakType || !breakNotes) {
+    if (!isClockedIn || !breakType || !breakNotes || !authToken) {
       toast.error('Please fill in all required fields for the break.');
       return;
     }
 
     try {
       await takeBreakRecord(authToken, recordId, breakType, breakNotes);
-      setBreakType('');
-      setBreakNotes('');
-      toast.success('Break Taken Successfully');
+      setBreakActive(true);
+      toast.success('Break started.');
     } catch {
-      toast.error('Error taking break. Please try again.');
+      toast.error('Error taking break.');
     }
   }, [isClockedIn, recordId, breakType, breakNotes]);
 
-  // Calculate total hours and extra hours
-  const totalHours = isClockedIn
-    ? formatTime(totalTimeInSeconds)
-    : formatTime(calculateTotalHours(clockInTime, clockOutTime));
-    
-  const extraHours = formattedExtraHours;
+  const handleEndBreak = () => {
+    if (breakExceeded) toast.warn('Break exceeded!');
+    setBreakActive(false);
+    setBreakDuration(0);
+    setBreakExceeded(false);
+    toast.success('Break ended.');
+  };
 
+  // UI Elements
   return (
     <div className="max-w-md mx-auto p-6 border rounded-lg shadow-lg bg-white">
-      {/* Display the clock-in message at the top */}
-      {clockInMessage && (
-        <div className="bg-green-100 text-green-800 p-2 rounded mb-4">
-          {clockInMessage}
-        </div>
-      )}
-
+      {/* Clock-in status and message */}
       <h3 className="text-xl font-bold text-center">Clock In</h3>
       <div className="text-center mt-4">
-        <p className="text-lg">{currentTime.toLocaleTimeString()}</p>
+        <p className="text-lg">{new Date().toLocaleTimeString()}</p>
       </div>
 
+      {/* Clock in/out buttons */}
       <div className="mt-6 flex justify-between">
         <button
           onClick={handleClockIn}
           className="bg-blue-500 text-white py-2 px-4 rounded"
-          disabled={isClockedIn || !getAuthToken()} // Disable if already clocked in
+          disabled={isClockedIn}
         >
           Clock In
-        </button>
-      </div>
-
-      <JobSection isClockedIn={isClockedIn} />
-
-      <BreakSelection
-        breakType={breakType}
-        setBreakType={setBreakType}
-        breakNotes={breakNotes}
-        setBreakNotes={setBreakNotes}
-      />
-
-      <div className="mt-6 flex justify-between">
-        <button
-          onClick={handleTakeBreak}
-          className="bg-purple-500 text-white py-2 px-4 rounded mt-2"
-          disabled={!isClockedIn || !breakType || !breakNotes}
-        >
-          Take Break
         </button>
         <button
           onClick={handleClockOut}
           className="bg-red-500 text-white py-2 px-4 rounded"
-          disabled={!isClockedIn}
+          disabled={!isClockedIn || breakActive}
         >
           Clock Out
         </button>
       </div>
 
-      <TimeTracking totalHours={totalHours} extraHours={extraHours} />
+      {/* Job management */}
+      <JobSection isClockedIn={isClockedIn} />
+
+      {/* Break management */}
+      <BreakSelection
+        breakType={breakType}
+        setBreakType={setBreakType}
+        breakNotes={breakNotes}
+        setBreakNotes={setBreakNotes}
+        handleTakeBreak={handleTakeBreak}
+        breakActive={breakActive}
+      />
+
+      {/* Active break indicator and end break button */}
+      {breakActive && (
+        <div className="mt-4">
+          <p>Current Break: {breakType === 'tea' ? 'Tea Break' : 'Lunch Break'}</p>
+          <button
+            onClick={handleEndBreak}
+            className="bg-green-500 text-white py-2 px-4 rounded mt-2"
+          >
+            End Break
+          </button>
+        </div>
+      )}
+
+      {/* Time tracking */}
+      <TimeTracking totalHours={workingSeconds} breakDuration={breakDuration} />
 
       <ToastContainer />
     </div>
   );
 };
 
-// Job Section component
+// Job Section Component
 const JobSection = ({ isClockedIn }) => {
   const [jobName, setJobName] = useState('');
 
@@ -224,8 +199,8 @@ const JobSection = ({ isClockedIn }) => {
   );
 };
 
-// Break Selection component
-const BreakSelection = ({ breakType, setBreakType, breakNotes, setBreakNotes }) => (
+// Break Selection Component
+const BreakSelection = ({ breakType, setBreakType, breakNotes, setBreakNotes, handleTakeBreak, breakActive }) => (
   <div className="mt-6">
     <select
       value={breakType}
@@ -242,14 +217,21 @@ const BreakSelection = ({ breakType, setBreakType, breakNotes, setBreakNotes }) 
       placeholder="Break Notes"
       className="border rounded p-2 w-full mt-2"
     />
+    <button
+      onClick={handleTakeBreak}
+      className="bg-purple-500 text-white py-2 px-4 rounded mt-2"
+      disabled={breakActive || !breakType || !breakNotes}
+    >
+      Take Break
+    </button>
   </div>
 );
 
-// Time Tracking component
-const TimeTracking = ({ totalHours, extraHours }) => (
+// Time Tracking Component
+const TimeTracking = ({ totalHours, breakDuration }) => (
   <div className="mt-4">
-    <p>Total Hours: {totalHours}</p>
-    <p>Extra Hours: {extraHours}</p>
+    <p>Total Hours: {formatTime(totalHours)}</p>
+    <p>Break Duration: {formatTime(breakDuration)}</p>
   </div>
 );
 
