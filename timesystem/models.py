@@ -22,14 +22,17 @@ class Project(models.Model):
 class Task(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
-        ('In_Progress', 'In_Progress'),
+        ('awaiting_approval', 'Awaiting Approval'),
+        ('extension_approved', 'Extension Approved'),
     ]
-    
+
     name = models.CharField(max_length=255)
     description = models.TextField()
     due_date = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
+    notes = models.TextField(null=True, blank=True)  # For extension or status change notes
     assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
 
     def __str__(self):

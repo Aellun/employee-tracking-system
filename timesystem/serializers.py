@@ -17,6 +17,16 @@ class TaskSerializer(serializers.ModelSerializer):
         model = Task
         fields = ['id', 'name', 'description', 'due_date', 'status', 'assigned_to']
 
+class TaskUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = ['status', 'notes']
+        
+    def validate(self, data):
+        if data['status'] == 'completed' and not data.get('notes'):
+            raise serializers.ValidationError("Notes are required when marking a task as completed.")
+        return data
+
 class TimeEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeEntry

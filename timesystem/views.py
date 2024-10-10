@@ -29,6 +29,7 @@ from .serializers import (
     ProjectSerializer,
     TaskSerializer,
     TimeEntrySerializer,
+    TaskUpdateSerializer,
 )
 
 User = get_user_model()
@@ -188,3 +189,53 @@ class UserTaskListView(generics.ListAPIView):
 
     def get_queryset(self):
         return Task.objects.filter(assigned_to=self.request.user)
+    
+
+class TaskUpdateView(APIView):
+    def patch(self, request, pk):
+        try:
+            task = Task.objects.get(pk=pk)
+        except Task.DoesNotExist:
+            return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Prevent update if task is already marked as complete
+        if task.status == 'completed':
+            return Response({"error": "This task is marked as completed and cannot be edited."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Prevent update if task is pending approval
+        if task.status == 'waiting_for_approval':
+            return Response({"error": "This task is pending approval and cannot be edited."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Update the task status and notes if the above conditions are not met
+        serializer = TaskSerializer(task, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+def update(self, request, *args, **kwargs):
+    task = self.get_object()
+
+    # Only the assigned user can update the task
+    if task.assigned_to != request.user:
+        return Response({"error": "You are not authorized to update this task."}, status=status.HTTP_403_FORBIDDEN)
+
+    # Prevent updates if the task is completed
+    if task.status == 'completed':
+        return Response({"error": "This task has been completed and cannot be updated."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Apply status changes
+    if request.data.get('status') == 'request_extension':
+        task.status = 'awaiting_approval'
+    elif request.data.get('status') == 'completed':
+        task.status = 'completed'
+    elif request.data.get('status') == 'in_progress':
+        task.status = 'in_progress'
+
+    # Save the notes and status
+    task.notes = request.data.get('notes')
+    task.save()
+
+    return Response({"message": "Task updated successfully."}, status=status.HTTP_200_OK)

@@ -13,13 +13,15 @@ from .views import (
     end_break,
     clock_out,
     clock_in,
-    LoginView
+    LoginView,
+    TaskUpdateView
 )
 
 router = DefaultRouter()
 router.register(r'employees', EmployeeViewSet)
 router.register(r'projects', ProjectViewSet)
 router.register(r'timeentries', TimeEntryViewSet)
+
 
 urlpatterns = [
     path('api/login/', LoginView.as_view(), name='login'),  # Traditional login endpoint
@@ -34,6 +36,9 @@ urlpatterns = [
     path('api/end-break/', end_break, name='end_break'),
     path('api/test-auth/', SimpleAuthView.as_view(), name='test_auth'),  # Auth test endpoint
     path('api/tasks/', UserTaskListView.as_view(), name='user-tasks'),
+    path('api/tasks/<int:pk>/update/', TaskUpdateView.as_view(), name='task-update'),
+
+
 ]
 
 
