@@ -68,6 +68,25 @@ class ClockInRecord(models.Model):
             self.hours_worked = round(worked_duration, 2)
         super().save(*args, **kwargs)
 
+    @staticmethod
+    def get_today_hours(user):
+        today = timezone.now().date()
+        # Get the latest clock-in record for today
+        clock_in_record = ClockInRecord.objects.filter(user=user, time_clocked_in__date=today).last()
+
+        if clock_in_record:
+            if clock_in_record.time_clocked_out is None:
+                # User is currently clocked in, calculate worked hours from clock-in time to now
+                current_time = timezone.now()
+                worked_duration = (current_time - clock_in_record.time_clocked_in).total_seconds() / 3600
+                return round(worked_duration, 2)
+            else:
+                # User has clocked out, return the hours worked from the record
+                return clock_in_record.hours_worked
+        else:
+            # No clock-in record for today
+            return 0
+
 class JobRecord(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     job_name = models.CharField(max_length=100)

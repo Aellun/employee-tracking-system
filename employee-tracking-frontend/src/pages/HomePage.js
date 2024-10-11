@@ -17,28 +17,29 @@ const HomePage = () => {
 
   useEffect(() => {
     if (token) {
-      // Fetch clock-in status
-      // axios.get('/api/clockin-status', { headers: { Authorization: `Bearer ${token}` } })
-      //   .then(response => {
-      //     setClockInStatus(response.data.clockedIn ? 'Clocked In' : 'Not Clocked In');
-      //   })
-      //   .catch(error => console.error('Error fetching clock-in status:', error));
-
-      // Fetch today's task summary
-      // axios.get('/api/tasks/today', { headers: { Authorization: `Bearer ${token}` } })
-      //   .then(response => {
-      //     setTaskSummary(response.data.tasks);
-      //   })
-      //   .catch(error => console.error('Error fetching task summary:', error));
-
+      // Fetch clock-in status from the correct backend URL
+    axios.get('http://localhost:8000/api/clockin-status/', { 
+      headers: { Authorization: `Bearer ${token}` } 
+    })
+      .then(response => {
+        if (response.data.clockedIn) {
+          const clockInTime = new Date(response.data.time_clocked_in).toLocaleTimeString();
+          setClockInStatus(`Clocked In at ${clockInTime}`);
+        } else {
+          setClockInStatus('Not Clocked In');
+        }
+      })
+      .catch(error => console.error('Error fetching clock-in status:', error));
+      
       // Fetch today's worked hours
-    //   axios.get('/api/timesheet/today', { headers: { Authorization: `Bearer ${token}` } })
-    //     .then(response => {
-    //       setHoursWorked(response.data.hoursWorked);
-    //     })
-    //     .catch(error => console.error('Error fetching hours worked:', error));
-    
-
+    axios.get('http://localhost:8000/api/timesheet/today/', { 
+      headers: { Authorization: `Bearer ${token}` } 
+    })
+      .then(response => {
+        setHoursWorked(response.data.hoursWorked);
+      })
+      .catch(error => console.error('Error fetching hours worked:', error));
+      
     // Fetch today's task summary
     axios.get('http://localhost:8000/api/tasks/today', { headers: { Authorization: `Bearer ${token}` } })
 

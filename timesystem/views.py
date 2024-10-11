@@ -22,6 +22,7 @@ from .models import (
     TimeEntry,
     ClockInRecord,
     BreakRecord,
+    ClockInRecord
 )
 
 from .serializers import (
@@ -251,3 +252,31 @@ class TodayTasksView(APIView):
         tasks = Task.objects.filter(status__in=['pending', 'awaiting_approval'])
         serializer = self.serializer_class(tasks, many=True)  # Use the serializer to serialize the queryset
         return Response(serializer.data)
+
+
+class ClockInStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        today = timezone.now().date()
+
+        # Query for a clock-in record with no clock-out for today
+        clock_in_record = ClockInRecord.objects.filter(user=user, time_clocked_out__isnull=True, time_clocked_in__date=today).first()
+
+        if clock_in_record:
+            # Return the clock-in time along with the clockedIn status
+            return Response({
+                'clockedIn': True,
+                'time_clocked_in': clock_in_record.time_clocked_in
+            })
+        else:
+            return Response({'clockedIn': False})
+        
+class TodayHoursWorkedView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        hours_worked = ClockInRecord.get_today_hours(user)
+        return Response({"hoursWorked": hours_worked}, status=200)
