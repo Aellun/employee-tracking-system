@@ -1,0 +1,61 @@
+/* TimesheetPage.css */
+
+body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background-color: #f9fafb; /* Light background */
+    color: #4b5563; /* Darker text */
+    transition: background-color 0.5s ease;
+}
+
+h1, h2 {
+    color: #1f2937; /* Darker heading color */
+    margin-bottom: 0.5rem;
+}
+
+.container {
+    max-width: 800px; /* Limit container width */
+    margin: auto; /* Center the container */
+    padding: 1rem; /* Add padding */
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse; /* Remove space between cells */
+    margin-top: 1rem;
+}
+
+.table th, .table td {
+    padding: 0.75rem;
+    text-align: left;
+    border: 1px solid #d1d5db; /* Gray border */
+}
+
+.table th {
+    background-color: #e5e7eb; /* Light gray for headers */
+    color: #1f2937; /* Dark text for headers */
+}
+
+.table tr:nth-child(even) {
+    background-color: #f3f4f6; /* Light gray for even rows */
+}
+
+.table tr:hover {
+    background-color: #d1fae5; /* Light green on hover */
+}
+
+.filter-container {
+    margin-bottom: 1rem;
+}
+
+.button {
+    background-color: #3b82f6; /* Blue button */
+    color: #ffffff; /* White text */
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.375rem; /* Rounded corners */
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #2563eb; /* Darker blue on hover */
+}

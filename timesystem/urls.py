@@ -17,7 +17,8 @@ from .views import (
     TaskUpdateView,
     TodayTasksView,
     ClockInStatusView,
-    TodayHoursWorkedView 
+    TodayHoursWorkedView,
+    TimesheetView
 )
 
 router = DefaultRouter()
@@ -43,6 +44,9 @@ urlpatterns = [
     path('api/tasks/today', TodayTasksView.as_view(), name='today-tasks'),
     path('api/clockin-status/', ClockInStatusView.as_view(), name='clockin-status'),
     path('api/timesheet/today/', TodayHoursWorkedView.as_view(), name='today-worked-hours'),
+    path('api/timesheet/', TimesheetView.as_view(), name='timesheet'),
+
+
 ]
 
 

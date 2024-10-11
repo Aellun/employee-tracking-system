@@ -31,6 +31,8 @@ from .serializers import (
     TaskSerializer,
     TimeEntrySerializer,
     TaskUpdateSerializer,
+    ClockInRecordSerializer,
+    BreakRecordSerializer
 )
 
 User = get_user_model()
@@ -280,3 +282,23 @@ class TodayHoursWorkedView(APIView):
         user = request.user
         hours_worked = ClockInRecord.get_today_hours(user)
         return Response({"hoursWorked": hours_worked}, status=200)
+    
+
+class TimesheetView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure user is authenticated
+
+    def get(self, request):
+        user = request.user
+        clock_in_records = ClockInRecord.objects.filter(user=user)
+        break_records = BreakRecord.objects.filter(clock_in_record__user=user)
+
+        clock_in_serializer = ClockInRecordSerializer(clock_in_records, many=True)
+        break_serializer = BreakRecordSerializer(break_records, many=True)
+
+        return Response({
+            'clockInRecords': clock_in_serializer.data,
+            'breakRecords': break_serializer.data,
+        })
+
+
+    
