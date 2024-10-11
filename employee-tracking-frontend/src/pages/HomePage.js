@@ -18,26 +18,36 @@ const HomePage = () => {
   useEffect(() => {
     if (token) {
       // Fetch clock-in status
-      axios.get('/api/clockin-status', { headers: { Authorization: `Bearer ${token}` } })
-        .then(response => {
-          setClockInStatus(response.data.clockedIn ? 'Clocked In' : 'Not Clocked In');
-        })
-        .catch(error => console.error('Error fetching clock-in status:', error));
+      // axios.get('/api/clockin-status', { headers: { Authorization: `Bearer ${token}` } })
+      //   .then(response => {
+      //     setClockInStatus(response.data.clockedIn ? 'Clocked In' : 'Not Clocked In');
+      //   })
+      //   .catch(error => console.error('Error fetching clock-in status:', error));
 
       // Fetch today's task summary
-      axios.get('/api/tasks/today', { headers: { Authorization: `Bearer ${token}` } })
-        .then(response => {
-          setTaskSummary(response.data.tasks);
-        })
-        .catch(error => console.error('Error fetching task summary:', error));
+      // axios.get('/api/tasks/today', { headers: { Authorization: `Bearer ${token}` } })
+      //   .then(response => {
+      //     setTaskSummary(response.data.tasks);
+      //   })
+      //   .catch(error => console.error('Error fetching task summary:', error));
 
       // Fetch today's worked hours
-      axios.get('/api/timesheet/today', { headers: { Authorization: `Bearer ${token}` } })
-        .then(response => {
-          setHoursWorked(response.data.hoursWorked);
-        })
-        .catch(error => console.error('Error fetching hours worked:', error));
-    }
+    //   axios.get('/api/timesheet/today', { headers: { Authorization: `Bearer ${token}` } })
+    //     .then(response => {
+    //       setHoursWorked(response.data.hoursWorked);
+    //     })
+    //     .catch(error => console.error('Error fetching hours worked:', error));
+    
+
+    // Fetch today's task summary
+    axios.get('http://localhost:8000/api/tasks/today', { headers: { Authorization: `Bearer ${token}` } })
+
+      .then(response => {
+        const taskNames = response.data.map(task => task.name);  // Extract only the names
+        setTaskSummary(taskNames);  // Set the task names
+      })
+      .catch(error => console.error('Error fetching task summary:', error));
+      }
   }, [token]);
 
   const handleLogout = () => {
@@ -81,17 +91,17 @@ const HomePage = () => {
 
           {/* Today's Tasks */}
           <div className="flex-1 bg-white rounded-lg shadow-md p-6 w-64">
-            <h2 className="text-2xl font-bold text-gray-800">Today's Tasks</h2>
-            {taskSummary.length > 0 ? (
-              <ul className="mt-4 space-y-2">
-                {taskSummary.map((task, index) => (
-                  <li key={index} className="text-lg text-gray-700">{task.name} - {task.status}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-4 text-lg text-gray-700">No tasks assigned for today.</p>
-            )}
-          </div>
+          <h2 className="text-2xl font-bold text-gray-800">Today's Tasks</h2>
+          {taskSummary.length > 0 ? (
+            <ul className="mt-4 space-y-2">
+              {taskSummary.map((taskName, index) => (
+                <li key={index} className="text-lg text-gray-700">{taskName}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-4 text-lg text-gray-700">No tasks assigned for today.</p>
+          )}
+        </div>
 
           {/* Hours Worked Today */}
           <div className="flex-1 bg-white rounded-lg shadow-md p-6 w-64">

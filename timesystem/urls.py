@@ -14,7 +14,8 @@ from .views import (
     clock_out,
     clock_in,
     LoginView,
-    TaskUpdateView
+    TaskUpdateView,
+    TodayTasksView  
 )
 
 router = DefaultRouter()
@@ -37,6 +38,7 @@ urlpatterns = [
     path('api/test-auth/', SimpleAuthView.as_view(), name='test_auth'),  # Auth test endpoint
     path('api/tasks/', UserTaskListView.as_view(), name='user-tasks'),
     path('api/tasks/<int:pk>/update/', TaskUpdateView.as_view(), name='task-update'),
+    path('api/tasks/today', TodayTasksView.as_view(), name='today-tasks'),
 
 
 ]

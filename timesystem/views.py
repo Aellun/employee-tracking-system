@@ -240,3 +240,14 @@ def update(self, request, *args, **kwargs):
     task.save()
 
     return Response({"message": "Task updated successfully."}, status=status.HTTP_200_OK)
+
+
+class TodayTasksView(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TaskSerializer  # Add this line
+
+    def get(self, request):
+        # Filter tasks based on status
+        tasks = Task.objects.filter(status__in=['pending', 'awaiting_approval'])
+        serializer = self.serializer_class(tasks, many=True)  # Use the serializer to serialize the queryset
+        return Response(serializer.data)
