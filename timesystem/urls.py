@@ -18,7 +18,8 @@ from .views import (
     TodayTasksView,
     ClockInStatusView,
     TodayHoursWorkedView,
-    TimesheetView
+    TimesheetView,
+    check_active_clock_in  
 )
 
 router = DefaultRouter()
@@ -45,7 +46,7 @@ urlpatterns = [
     path('api/clockin-status/', ClockInStatusView.as_view(), name='clockin-status'),
     path('api/timesheet/today/', TodayHoursWorkedView.as_view(), name='today-worked-hours'),
     path('api/timesheet/', TimesheetView.as_view(), name='timesheet'),
-
+    path('api/check-active-clockin/', check_active_clock_in, name='check-active-clockin'),
 
 ]
 

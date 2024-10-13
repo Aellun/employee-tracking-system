@@ -1,9 +1,44 @@
-// src/api/index.js
-
 import axios from 'axios';
 
 // Base URL (adjust this to point to your backend)
 const API_URL = 'http://localhost:8000/api/'; // Replace with your actual backend URL
+
+// Function to check if there is an active clock-in
+export const checkActiveClockIn = async (authToken) => {
+    try {
+        const response = await axios.get(
+            `${API_URL}check-active-clockin/`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            }
+        );
+
+        if (response.status === 200) {
+            // Extract data from the response
+            const { active, time_clocked_in, record_id } = response.data;
+
+            // Optionally handle the data further or store it
+            return { active, time_clocked_in, record_id }; // Return the full data
+        } else {
+            throw new Error('Unexpected response from the server.');
+        }
+    } catch (error) {
+        console.error('Error checking active clock-in:', error);
+        // Improved error handling
+        if (error.response) {
+            const message = error.response.data.error || 'An error occurred while checking active clock-in.';
+            throw new Error(message);
+        } else {
+            throw new Error('Network error: Please check your connection.');
+        }
+    }
+};
+
+
+
 
 // Function to clock in
 export const clockInRecord = async (authToken, additionalData = {}) => {
@@ -19,19 +54,15 @@ export const clockInRecord = async (authToken, additionalData = {}) => {
             }
         );
 
-        // Check if the response is successful (201)
         if (response.status === 201) {
             console.log('Response:', response.data); // Log the successful response
             return response.data; // Return the success message and record ID
         } else {
-            // Handle unexpected statuses (not likely since backend returns 201 on success)
             throw new Error('Unexpected response from the server.');
         }
-
     } catch (error) {
         console.error('Error clocking in:', error);
 
-        // Provide more detailed error feedback
         if (error.response) {
             throw new Error(error.response.data.message || 'An error occurred while clocking in.');
         } else {
@@ -95,3 +126,4 @@ export const takeBreakRecord = async (authToken, recordId, breakType, notes) => 
         }
     }
 };
+

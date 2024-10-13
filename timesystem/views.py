@@ -14,6 +14,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from rest_framework import generics
+from django.contrib.auth.decorators import login_required
 
 from .models import (
     Employee,
@@ -103,7 +104,12 @@ class LoginView(APIView):
 @permission_classes([IsAuthenticated])
 def clock_in(request):
     user = request.user
-    print(f"User: {user.email}, is_active: {user.is_active}, is_authenticated: {user.is_authenticated}")
+    # Check if the user already has an active clock-in record
+    active_clock_in = ClockInRecord.objects.filter(user=user, time_clocked_out__isnull=True).first()
+    
+    if active_clock_in:
+        return Response({'message': f'You are already clocked in at {active_clock_in.time_clocked_in}.'}, status=status.HTTP_400_BAD_REQUEST)
+    
     record = ClockInRecord.objects.create(user=user)
     return Response({'message': 'Clocked in successfully', 'record_id': record.id}, status=status.HTTP_201_CREATED)
 
@@ -112,13 +118,20 @@ def clock_in(request):
 @permission_classes([IsAuthenticated])
 def clock_out(request):
     print("Data received from frontend:", request.data)
-    record_id = request.data.get('record_id')  # Make sure this is sent in the request body
+    record_id = request.data.get('record_id')  # Expect this in the request body
     
+    # If no record_id provided, find the active clock-in
     if record_id is None:
-        return Response({'error': 'record_id not provided'}, status=status.HTTP_400_BAD_REQUEST)
-    
+        record = ClockInRecord.objects.filter(user=request.user, time_clocked_out__isnull=True).first()
+        if not record:
+            return Response({'error': 'No active clock-in found.'}, status=status.HTTP_400_BAD_REQUEST)
+        record_id = record.id  # Use the active clock-in ID
+
     try:
         record = ClockInRecord.objects.get(id=record_id, user=request.user)
+        if record.time_clocked_out is not None:
+            return Response({'error': 'Record already clocked out.'}, status=status.HTTP_400_BAD_REQUEST)
+
         record.time_clocked_out = timezone.now()
         worked_hours = (record.time_clocked_out - record.time_clocked_in).total_seconds() / 3600
         record.hours_worked = round(worked_hours, 2)
@@ -126,7 +139,8 @@ def clock_out(request):
         
         response_data = {
             'message': 'Clocked out successfully',
-            'hours_worked': record.hours_worked
+            'hours_worked': record.hours_worked,
+            'clocked_out_at': record.time_clocked_out.strftime("%Y-%m-%d %H:%M:%S"),
         }
         print("Response data to be sent:", response_data)
         return Response(response_data, status=status.HTTP_200_OK)
@@ -138,26 +152,26 @@ def clock_out(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def take_break(request):
-    print("Request data:", request.data)  # Add this line to check what data is being received
+    print("Request data:", request.data)  
     record_id = request.data.get('record_id')
     break_type = request.data.get('break_type')
     break_notes = request.data.get('break_notes', '')
 
-    try:
-        clock_in_record = ClockInRecord.objects.get(id=record_id, user=request.user)
-        break_record = BreakRecord.objects.create(
-            clock_in_record=clock_in_record,
-            break_type=break_type,
-            break_notes=break_notes,
-            time_started=timezone.now()
-        )
-        return Response({
-            'message': 'Break started successfully',
-            'break_id': break_record.id
-        }, status=status.HTTP_201_CREATED)
+    # Check if the user has an active clock-in
+    if record_id is None or not ClockInRecord.objects.filter(id=record_id, user=request.user, time_clocked_out__isnull=True).exists():
+        return Response({'error': 'No active clock-in found to take a break.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    except ClockInRecord.DoesNotExist:
-        return Response({'error': 'Clock-in record not found'}, status=status.HTTP_404_NOT_FOUND)
+    clock_in_record = ClockInRecord.objects.get(id=record_id, user=request.user)
+    break_record = BreakRecord.objects.create(
+        clock_in_record=clock_in_record,
+        break_type=break_type,
+        break_notes=break_notes,
+        time_started=timezone.now()
+    )
+    return Response({
+        'message': 'Break started successfully',
+        'break_id': break_record.id
+    }, status=status.HTTP_201_CREATED)
 
 # End Break Endpoint
 @api_view(['POST'])
@@ -299,6 +313,23 @@ class TimesheetView(APIView):
             'clockInRecords': clock_in_serializer.data,
             'breakRecords': break_serializer.data,
         })
-
-
     
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Require authentication
+def check_active_clock_in(request):
+    user = request.user  # Get the current logged-in user
+    try:
+        # Check if there's an active clock-in record for the user
+        active_clock_in = ClockInRecord.objects.filter(user=user, time_clocked_out__isnull=True).first()
+
+        if active_clock_in:
+            return Response({
+                'active': True,
+                'time_clocked_in': active_clock_in.time_clocked_in,
+                'record_id': active_clock_in.id
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({'active': False, 'record_id': None}, status=status.HTTP_200_OK)  # Include record_id as None
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

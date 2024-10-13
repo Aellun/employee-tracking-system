@@ -1,4 +1,5 @@
-import React, { useState } from 'react';  
+import React, { useState } from 'react'; 
+import RedirectToLocalhost from './RedirectToLocalhost';  // Import the Redirect component
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';  
 import { AuthProvider, useAuth } from './AuthProvider'; // Import the AuthProvider
 import Login from './components/Login';  
@@ -12,12 +13,15 @@ import HomePage from './pages/HomePage'; // Home page for employees
 import AdminHomePage from './pages/AdminHomePage'; // Admin home page
 import TimeClock from './components/TimeClock';
 import AdminTasksPage from './pages/AdminTasksPage';
+
 function App() {  
   const [isTimeClockOpen, setIsTimeClockOpen] = useState(false); // State to manage Time Clock visibility
   const { token, isAdmin } = useAuth(); // Get auth values from context
 
   return (  
     <Router>  
+      <RedirectToLocalhost /> {/* Add the RedirectToLocalhost component here */}
+
       <div>  
         {/* Render the Time Clock window conditionally */}
         {isTimeClockOpen && (
