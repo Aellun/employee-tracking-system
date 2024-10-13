@@ -1,4 +1,7 @@
 /* TimesheetPage.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 body {
     font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -46,6 +49,10 @@ h1, h2 {
 .filter-container {
     margin-bottom: 1rem;
 }
+.break-row {
+    background-color: #f5f5f5; /* Light background for break rows */
+  }
+  
 
 .button {
     background-color: #3b82f6; /* Blue button */
@@ -59,3 +66,20 @@ h1, h2 {
 .button:hover {
     background-color: #2563eb; /* Darker blue on hover */
 }
+
+/* TimesheetPage.css */
+.date-header {
+    cursor: pointer; /* Change cursor to indicate clickable element */
+    font-weight: bold; /* Bold text for date header */
+    background-color: #e5e7eb; /* Light gray background */
+    padding: 10px; /* Padding around the date header */
+    border: 1px solid #d1d5db; /* Gray border */
+    margin-top: 10px; /* Space above each date header */
+    transition: background-color 0.3s; /* Smooth background color transition */
+}
+
+.date-header:hover {
+    background-color: #d1fae5; /* Light green on hover */
+}
+
+

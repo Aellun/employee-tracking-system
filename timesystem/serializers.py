@@ -47,7 +47,7 @@ class ClockInRecordSerializer(serializers.ModelSerializer):
     hours_worked = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)  # Make sure to use model field name
     extra_hours = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)  # Ensure this aligns with your model
     user = serializers.StringRelatedField()  # Display user by username or email
-
+    breaks = BreakRecordSerializer(many=True, read_only=True, source='breakrecord_set')
     class Meta:
         model = ClockInRecord
         fields = ['id', 'user', 'time_clocked_in', 'time_clocked_out', 'hours_worked', 'extra_hours', 'breaks']

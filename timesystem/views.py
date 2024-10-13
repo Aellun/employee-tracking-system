@@ -303,17 +303,58 @@ class TimesheetView(APIView):
 
     def get(self, request):
         user = request.user
+        date = request.query_params.get('date')  # Get the date parameter from the request
+
+        # Fetch clock-in records for the user
         clock_in_records = ClockInRecord.objects.filter(user=user)
-        break_records = BreakRecord.objects.filter(clock_in_record__user=user)
 
-        clock_in_serializer = ClockInRecordSerializer(clock_in_records, many=True)
-        break_serializer = BreakRecordSerializer(break_records, many=True)
+        # If a date is provided, filter clock-in records by that date
+        if date:
+            clock_in_records = clock_in_records.filter(time_clocked_in__date=date)
 
-        return Response({
-            'clockInRecords': clock_in_serializer.data,
-            'breakRecords': break_serializer.data,
-        })
-    
+        # Fetch breaks associated with the filtered clock-in records
+        break_records = BreakRecord.objects.filter(clock_in_record__in=clock_in_records)
+
+        # Create structured data for output
+        structured_data = []
+        for record in clock_in_records:
+            # Calculate duration
+            duration = self.calculate_duration(record.time_clocked_in, record.time_clocked_out)
+            # Get associated breaks
+            breaks = break_records.filter(clock_in_record=record)
+
+            # Append record data along with breaks
+            structured_data.append({
+                'time_clocked_in': record.time_clocked_in.isoformat(),  # Return full ISO format
+                'time_clocked_out': record.time_clocked_out.isoformat() if record.time_clocked_out else None,
+                'duration': duration,
+                'notes': "N/A",  # Remove this or set to default as ClockInRecord has no notes field
+                'breaks': BreakRecordSerializer(breaks, many=True).data,
+            })
+
+        return Response(structured_data)
+
+    def calculate_duration(self, time_in, time_out):
+        if time_out:
+            # Calculate total duration in seconds
+            duration = time_out - time_in
+            total_seconds = duration.total_seconds()  # Total duration in seconds
+
+            # Calculate hours and minutes
+            hours = int(total_seconds // 3600)
+            minutes = int((total_seconds % 3600) // 60)
+
+            # Return the formatted string
+            if hours > 0:
+                return f"{hours}h {minutes:02d}m"  # Format as "hh:mm"
+            else:
+                return f"{minutes}m"  # Return only minutes if less than an hour
+
+        return "0m"  # Default if no time_out is available
+
+
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])  # Require authentication
 def check_active_clock_in(request):
