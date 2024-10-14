@@ -17,17 +17,13 @@ export const checkActiveClockIn = async (authToken) => {
         );
 
         if (response.status === 200) {
-            // Extract data from the response
             const { active, time_clocked_in, record_id } = response.data;
-
-            // Optionally handle the data further or store it
-            return { active, time_clocked_in, record_id }; // Return the full data
+            return { active, time_clocked_in, record_id };
         } else {
             throw new Error('Unexpected response from the server.');
         }
     } catch (error) {
         console.error('Error checking active clock-in:', error);
-        // Improved error handling
         if (error.response) {
             const message = error.response.data.error || 'An error occurred while checking active clock-in.';
             throw new Error(message);
@@ -37,26 +33,23 @@ export const checkActiveClockIn = async (authToken) => {
     }
 };
 
-
-
-
 // Function to clock in
 export const clockInRecord = async (authToken, additionalData = {}) => {
     try {
         const response = await axios.post(
             `${API_URL}clock-in/`,
-            additionalData, // Send additional data if required
+            additionalData,
             {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json', // Ensure content type is set
+                    'Content-Type': 'application/json',
                 }
             }
         );
 
         if (response.status === 201) {
-            console.log('Response:', response.data); // Log the successful response
-            return response.data; // Return the success message and record ID
+            console.log('Response:', response.data);
+            return response.data;
         } else {
             throw new Error('Unexpected response from the server.');
         }
@@ -80,12 +73,12 @@ export const clockOutRecord = async (authToken, recordId) => {
             {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json', // Ensure content type is set
+                    'Content-Type': 'application/json',
                 }
             }
         );
 
-        console.log('Response:', response.data); // Log the response
+        console.log('Response:', response.data);
         return response.data;
     } catch (error) {
         console.error('Error clocking out:', error);
@@ -110,12 +103,12 @@ export const takeBreakRecord = async (authToken, recordId, breakType, notes) => 
             {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json', // Ensure content type is set
+                    'Content-Type': 'application/json',
                 }
             }
         );
 
-        console.log('Response:', response.data); // Log the response
+        console.log('Response:', response.data);
         return response.data;
     } catch (error) {
         console.error('Error taking break:', error);
@@ -127,3 +120,59 @@ export const takeBreakRecord = async (authToken, recordId, breakType, notes) => 
     }
 };
 
+// Function to check if there is an active break
+export const checkActiveBreak = async (authToken, recordId) => {
+    try {
+        const response = await axios.get(
+            `${API_URL}check-active-break/`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                },
+                params: { record_id: recordId }
+            }
+        );
+
+        if (response.status === 200) {
+            const { active, break_id, break_start_time } = response.data;
+            return { active, break_id, break_start_time };
+        } else {
+            throw new Error('Unexpected response from the server.');
+        }
+    } catch (error) {
+        console.error('Error checking active break:', error);
+        if (error.response) {
+            const message = error.response.data.error || 'An error occurred while checking active break.';
+            throw new Error(message);
+        } else {
+            throw new Error('Network error: Please check your connection.');
+        }
+    }
+};
+
+// Function to end an active break
+export const endBreakRecord = async (authToken, breakId) => {
+    try {
+        const response = await axios.post(
+            `${API_URL}end-break/`,
+            { break_id: breakId },
+            {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            }
+        );
+
+        console.log('Response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error ending break:', error);
+        if (error.response) {
+            throw new Error(error.response.data.message || 'An error occurred while ending the break.');
+        } else {
+            throw new Error('Network error: Please check your connection.');
+        }
+    }
+};

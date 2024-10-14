@@ -13,6 +13,7 @@ from .views import (
     end_break,
     clock_out,
     clock_in,
+    check_active_break,  # New view for checking active break
     LoginView,
     TaskUpdateView,
     TodayTasksView,
@@ -27,7 +28,6 @@ router.register(r'employees', EmployeeViewSet)
 router.register(r'projects', ProjectViewSet)
 router.register(r'timeentries', TimeEntryViewSet)
 
-
 urlpatterns = [
     path('api/login/', LoginView.as_view(), name='login'),  # Traditional login endpoint
     path('api/token/obtain/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),  # JWT token obtain endpoint
@@ -39,6 +39,7 @@ urlpatterns = [
     path('api/clock-out/', clock_out, name='clock_out'), 
     path('api/take-break/', take_break, name='take_break'),
     path('api/end-break/', end_break, name='end_break'),
+    path('api/check-active-break/', check_active_break, name='check_active_break'),  # New endpoint for checking active break
     path('api/test-auth/', SimpleAuthView.as_view(), name='test_auth'),  # Auth test endpoint
     path('api/tasks/', UserTaskListView.as_view(), name='user-tasks'),
     path('api/tasks/<int:pk>/update/', TaskUpdateView.as_view(), name='task-update'),
@@ -47,7 +48,4 @@ urlpatterns = [
     path('api/timesheet/today/', TodayHoursWorkedView.as_view(), name='today-worked-hours'),
     path('api/timesheet/', TimesheetView.as_view(), name='timesheet'),
     path('api/check-active-clockin/', check_active_clock_in, name='check-active-clockin'),
-
 ]
-
-

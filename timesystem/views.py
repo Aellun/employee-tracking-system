@@ -148,19 +148,58 @@ def clock_out(request):
     except ClockInRecord.DoesNotExist:
         return Response({'error': 'Record not found'}, status=status.HTTP_404_NOT_FOUND)
 
+
+# Check Active Break Endpoint
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_active_break(request):
+    record_id = request.query_params.get('record_id')
+    if not record_id:
+        return Response({'error': 'Record ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Check for an active break associated with the clock-in record
+        active_break = BreakRecord.objects.get(
+            clock_in_record__id=record_id,
+            clock_in_record__user=request.user,
+            time_ended__isnull=True
+        )
+        return Response({
+            'active': True,
+            'break_id': active_break.id,
+            'break_start_time': active_break.time_started
+        }, status=status.HTTP_200_OK)
+
+    except BreakRecord.DoesNotExist:
+        # No active break found
+        return Response({'active': False}, status=status.HTTP_200_OK)
+
 # Start Break Endpoint
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def take_break(request):
-    print("Request data:", request.data)  
     record_id = request.data.get('record_id')
     break_type = request.data.get('break_type')
     break_notes = request.data.get('break_notes', '')
 
     # Check if the user has an active clock-in
-    if record_id is None or not ClockInRecord.objects.filter(id=record_id, user=request.user, time_clocked_out__isnull=True).exists():
+    if not record_id or not ClockInRecord.objects.filter(
+        id=record_id,
+        user=request.user,
+        time_clocked_out__isnull=True
+    ).exists():
         return Response({'error': 'No active clock-in found to take a break.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Ensure there isn't an ongoing break for the active clock-in
+    active_break = BreakRecord.objects.filter(
+        clock_in_record__id=record_id,
+        clock_in_record__user=request.user,
+        time_ended__isnull=True
+    ).exists()
+    if active_break:
+        return Response({'error': 'There is already an active break for this clock-in.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Create a new break record
     clock_in_record = ClockInRecord.objects.get(id=record_id, user=request.user)
     break_record = BreakRecord.objects.create(
         clock_in_record=clock_in_record,
@@ -177,11 +216,21 @@ def take_break(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def end_break(request):
+    break_id = request.data.get('break_id')
+    if not break_id:
+        return Response({'error': 'Break ID is required to end the break.'}, status=status.HTTP_400_BAD_REQUEST)
+
     try:
-        break_id = request.data.get('break_id')
-        break_record = BreakRecord.objects.get(id=break_id, clock_in_record__user=request.user, time_ended__isnull=True)
+        # Retrieve the active break
+        break_record = BreakRecord.objects.get(
+            id=break_id,
+            clock_in_record__user=request.user,
+            time_ended__isnull=True
+        )
         break_record.time_ended = timezone.now()
         break_record.save()
+        
+        # Calculate the duration of the break
         duration = break_record.duration()
 
         return Response({
@@ -189,7 +238,7 @@ def end_break(request):
             'break_id': break_record.id,
             'break_duration': duration
         }, status=status.HTTP_200_OK)
-    
+
     except BreakRecord.DoesNotExist:
         return Response({'error': 'Break record not found or already ended'}, status=status.HTTP_404_NOT_FOUND)
 
