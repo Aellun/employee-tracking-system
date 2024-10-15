@@ -93,6 +93,7 @@ class LoginView(APIView):
                     'token': access_token,  # The access token to be used in further requests
                     'is_admin': user.is_staff,  # Check if the user is an admin
                     'username': user.username,
+                    'user_id': user.id,
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'User account is disabled'}, status=status.HTTP_403_FORBIDDEN)
@@ -167,7 +168,10 @@ def check_active_break(request):
         return Response({
             'active': True,
             'break_id': active_break.id,
-            'break_start_time': active_break.time_started
+            'break_start_time': active_break.time_started,
+            'clock_in_record__id': active_break.clock_in_record_id,
+            'breakType':active_break.break_type,
+            'record_id':active_break.clock_in_record_id
         }, status=status.HTTP_200_OK)
 
     except BreakRecord.DoesNotExist:
@@ -408,6 +412,7 @@ class TimesheetView(APIView):
 @permission_classes([IsAuthenticated])  # Require authentication
 def check_active_clock_in(request):
     user = request.user  # Get the current logged-in user
+    print(f"Checking active clock-in for user ID: {user.id}")
     try:
         # Check if there's an active clock-in record for the user
         active_clock_in = ClockInRecord.objects.filter(user=user, time_clocked_out__isnull=True).first()
@@ -416,7 +421,8 @@ def check_active_clock_in(request):
             return Response({
                 'active': True,
                 'time_clocked_in': active_clock_in.time_clocked_in,
-                'record_id': active_clock_in.id
+                'record_id': active_clock_in.id,
+                'user_id': active_clock_in.user_id
             }, status=status.HTTP_200_OK)
         else:
             return Response({'active': False, 'record_id': None}, status=status.HTTP_200_OK)  # Include record_id as None

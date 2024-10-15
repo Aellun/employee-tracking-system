@@ -44,15 +44,13 @@ class BreakRecordSerializer(serializers.ModelSerializer):
 
 class ClockInRecordSerializer(serializers.ModelSerializer):
     breaks = BreakRecordSerializer(many=True, read_only=True)  # Fetch associated break records
-    hours_worked = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)  # Make sure to use model field name
-    extra_hours = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)  # Ensure this aligns with your model
-    user = serializers.StringRelatedField()  # Display user by username or email
+    hours_worked = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)  # Use model field name
+    extra_hours = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)  # Align with model
+    user_id = serializers.PrimaryKeyRelatedField(source='user', read_only=True)  # Add user_id to response
+    user = serializers.StringRelatedField()  # Keep this if you still want to display the user by username or email
     breaks = BreakRecordSerializer(many=True, read_only=True, source='breakrecord_set')
+
     class Meta:
         model = ClockInRecord
-        fields = ['id', 'user', 'time_clocked_in', 'time_clocked_out', 'hours_worked', 'extra_hours', 'breaks']
+        fields = ['id', 'user', 'user_id', 'time_clocked_in', 'time_clocked_out', 'hours_worked', 'extra_hours', 'breaks']
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email']

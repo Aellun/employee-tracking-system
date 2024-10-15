@@ -25,9 +25,10 @@ const Login = () => {
       if (response.status === 200) {
         console.log('Login response:', response.data); // Log the entire response
 
-        // Store the token and admin status
+        // Store the token, user ID, and admin status
         login({
           token: response.data.token,
+          user_id: response.data.user_id, // Include user_id
           username: response.data.username,
           is_admin: response.data.is_admin,
         });

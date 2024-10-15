@@ -20,6 +20,7 @@ const AdminHomePage = () => {
             <li><Link to="/admin/employees" className="hover:text-yellow-300 transition">Employees</Link></li>
             <li><Link to="/admin/projects" className="hover:text-yellow-300 transition">Projects</Link></li>
             <li><Link to="/admin/reports" className="hover:text-yellow-300 transition">Reports</Link></li>
+            <li><Link to="/clockin" className="hover:text-yellow-300">Clock In</Link></li>
           </ul>
 
           {/* Logout button will appear if the user is logged in (token exists) */}

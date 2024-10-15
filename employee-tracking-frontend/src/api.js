@@ -17,8 +17,8 @@ export const checkActiveClockIn = async (authToken) => {
         );
 
         if (response.status === 200) {
-            const { active, time_clocked_in, record_id } = response.data;
-            return { active, time_clocked_in, record_id };
+            const { active, time_clocked_in, record_id, user_id } = response.data;
+            return { active, time_clocked_in, record_id, user_id };
         } else {
             throw new Error('Unexpected response from the server.');
         }
@@ -135,8 +135,8 @@ export const checkActiveBreak = async (authToken, recordId) => {
         );
 
         if (response.status === 200) {
-            const { active, break_id, break_start_time } = response.data;
-            return { active, break_id, break_start_time };
+            const { active, break_id, break_start_time, record_id , breakType} = response.data;
+            return { active, break_id, break_start_time, record_id,breakType };
         } else {
             throw new Error('Unexpected response from the server.');
         }

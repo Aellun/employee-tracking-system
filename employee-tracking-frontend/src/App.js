@@ -48,6 +48,7 @@ function App() {
               <Route path="/admin/projects" element={token ? <ProjectsPage /> : <Navigate to="/" />} />
               <Route path="/admin/reports" element={token ? <ReportsPage /> : <Navigate to="/" />} />
               <Route path="/admin/tasks" element={token ? <AdminTasksPage /> : <Navigate to="/" />} />
+              
             </>
           )}
         </Routes>

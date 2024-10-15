@@ -5,37 +5,41 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [token, setToken] = useState(localStorage.getItem('authToken') || null);
+  const [userId, setUserId] = useState(localStorage.getItem('userId') || null); // New userId state
 
   useEffect(() => {
     const storedToken = localStorage.getItem('authToken');
-    if (storedToken) {
-      setToken(storedToken);
-    }
+    const storedUserId = localStorage.getItem('userId'); // Retrieve userId from localStorage
+    if (storedToken) setToken(storedToken);
+    if (storedUserId) setUserId(storedUserId);
   }, []);
 
   const login = (userData) => {
     console.log('Login called with:', userData);
     localStorage.setItem('authToken', userData.token);
+    localStorage.setItem('userId', userData.user_id); // Store userId in localStorage
     localStorage.setItem('username', userData.username);
     setToken(userData.token);
+    setUserId(userData.user_id); // Set userId state
     setIsAdmin(userData.is_admin);
-
-    console.log('Token set in localStorage:', localStorage.getItem('authToken'));
-    console.log('Token set in state:', userData.token);
-    console.log('Admin status set in state:', userData.is_admin);
-    console.log('Username set in localStorage:', localStorage.getItem('username'));
   };
 
   const logout = () => {
-    console.log('Logout called');
+    // Remove specific keys from localStorage
     localStorage.removeItem('authToken');
+    localStorage.removeItem('clockInTime');
+    localStorage.removeItem('recordId');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('username');
+    localStorage.removeItem('breakActive');  // Remove breakActive
+    localStorage.removeItem('totalWorkedSeconds');  // Remove totalWorkedSeconds
     setToken(null);
+    setUserId(null); // Reset userId state
     setIsAdmin(false);
-    console.log('Token removed from localStorage');
   };
 
   return (
-    <AuthContext.Provider value={{ isAdmin, token, login, logout }}>
+    <AuthContext.Provider value={{ isAdmin, token, userId, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

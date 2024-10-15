@@ -2,9 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { clockInRecord, clockOutRecord, takeBreakRecord, checkActiveClockIn, endBreakRecord, checkActiveBreak } from '../api';
+import { useAuth } from '../AuthProvider'; // Import the AuthProvider
+
 
 // Helper functions
 const getAuthToken = () => localStorage.getItem('authToken');
+
 const formatTime = (seconds) => new Date(seconds * 1000).toISOString().substr(11, 8);
 const convertSecondsToHMM = (totalSeconds) => {
   const hours = Math.floor(totalSeconds / 3600);
@@ -14,6 +17,7 @@ const convertSecondsToHMM = (totalSeconds) => {
 
 // TimeClock component
 const ClockInSeconds = () => {
+  const { token, userId } = useAuth();
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [clockInTime, setClockInTime] = useState(null);
   const [recordId, setRecordId] = useState(null);
@@ -32,7 +36,7 @@ const ClockInSeconds = () => {
     const savedClockInTime = localStorage.getItem('clockInTime');
     const savedRecordId = localStorage.getItem('recordId');
     const savedBreakActive = localStorage.getItem('breakActive') === 'true'; // Retrieve break state
-
+    
     if (savedClockInTime) {
       const parsedTime = new Date(savedClockInTime);
       setClockInTime(parsedTime);
@@ -94,61 +98,64 @@ const ClockInSeconds = () => {
     return () => clearInterval(breakInterval); // Clean up interval on break end
   }, [breakActive, breakDuration, breakType]);
 
-  // Check active clock-in status and any active break on component mount
-  useEffect(() => {
-    const fetchActiveClockInAndBreak = async () => {
-      const authToken = getAuthToken();
-      if (!authToken) return;
+  useEffect(() => {   
+    console.log("User ID from Auth:", userId); // Debugging line  
 
-      try {
-        const response = await checkActiveClockIn(authToken);
-        if (response.active) {
-          const clockInTime = response.time_clocked_in;
-          const activeRecordId = response.record_id;
+    const fetchActiveClockInAndBreak = async () => {  
+        if (!token || !userId) return; // Ensure token and userId are available  
+  
+        try {  
+            const response = await checkActiveClockIn(token);  
+            console.log("Response from checkActiveClockIn:", response); // Debugging line  
 
-          if (clockInTime) {
-            const parsedTime = new Date(clockInTime);
-            if (!isNaN(parsedTime.getTime())) {
-              setIsClockedIn(true);
-              setClockInTime(parsedTime);
-              setRecordId(activeRecordId);
-              
-        // Fetch any active break for this clock-in
-        const breakResponse = await checkActiveBreak(authToken, activeRecordId); 
-        try {
-          
-          if (breakResponse?.active) {
-            const breakData = breakResponse; // Use breakResponse directly since it contains break_id and time_started
-            setBreakActive(true);
-            setBreakType(breakData.break_type || ''); // Handle missing break_type gracefully
-            setBreakNotes(breakData.break_notes || ''); // Handle missing break_notes
-            setBreakId(breakData.break_id); // Set the break ID for future reference
+            // Check if there is an active clock-in for the logged-in user  
+            if (response.active && response.user_id == userId) {  
+                const clockInTime = response.time_clocked_in;  
+                const activeRecordId = response.record_id;  
 
-            // Calculate the elapsed break time since `time_started`
-            const breakStartTime = new Date(breakData.break_start_time);
-            const elapsedBreakSeconds = Math.floor((Date.now() - breakStartTime.getTime()) / 1000);
-            setBreakDuration(elapsedBreakSeconds);
-          } 
-        } catch (error) {
-          console.error('Detailed error:', error); // Log the actual error
-          toast.error('Error checking active clock-in or break.'); // Generic error for the user
-        }
+                if (clockInTime) {  
+                    const parsedTime = new Date(clockInTime);  
+                    if (!isNaN(parsedTime.getTime())) {  
+                        setIsClockedIn(true);  
+                        setClockInTime(parsedTime);  
+                        setRecordId(activeRecordId);  
+  
+                        // Fetch any active break for this clock-in  
+                        const breakResponse = await checkActiveBreak(token, activeRecordId);  
+                        console.log("Response from checkActiveBreak:", breakResponse); // Debugging line  
+
+                        // Check if breakResponse is active and matches the record_id  
+                        if (breakResponse.active && breakResponse.record_id === activeRecordId) {  
+                            const breakData = breakResponse;  
+                            setBreakActive(true);  
+                            setBreakType(breakData.break_type || '');  
+                            setBreakNotes(breakData.break_notes || '');  
+                            setBreakId(breakData.break_id);  
+  
+                            // Calculate the elapsed break time since `break_start_time`  
+                            const breakStartTime = new Date(breakData.break_start_time);  
+                            const elapsedBreakSeconds = Math.floor((Date.now() - breakStartTime.getTime()) / 1000);  
+                            setBreakDuration(elapsedBreakSeconds);  
+                        }  
+
+                        // Store clock-in and break data in localStorage  
+                        localStorage.setItem('clockInTime', parsedTime.toISOString());  
+                        localStorage.setItem('recordId', activeRecordId);  
+                        localStorage.setItem('breakActive', breakResponse.active && breakResponse.user_id == userId ? 'true' : 'false');  
+                    }  
+                }  
+            }  
+        } catch (error) {  
+            console.error('Detailed error:', error);  
+            toast.error('Error checking active clock-in or break.');  
+        }  
+    };  
+  
+    fetchActiveClockInAndBreak();  
+}, [token, userId]); // Rerun if token or userId changes
 
 
-              // Store clock-in and break data in localStorage
-              localStorage.setItem('clockInTime', parsedTime.toISOString());
-              localStorage.setItem('recordId', activeRecordId);
-              localStorage.setItem('breakActive', breakResponse?.active ? 'true' : 'false');
-            }
-          }
-        }
-      } catch (error) {
-        toast.error('Error checking active clock-in or break.');
-      }
-    };
-
-    fetchActiveClockInAndBreak();
-  }, []); // Run on component mount
+  
 
   // Update `handleEndBreak` to send break ID
   const handleEndBreak = async () => {
@@ -336,7 +343,9 @@ const ClockInSeconds = () => {
 
         {breakActive && (
           <div className="mt-4">
-            <p>Break Duration: {formatTime(breakDuration)}</p>
+              
+            <p>Break Duration: {formatTime(breakDuration)}</p> 
+            
             <button onClick={handleEndBreak} className="bg-orange-500 text-white py-2 px-4 mt-2 rounded">
               End Break
             </button>
