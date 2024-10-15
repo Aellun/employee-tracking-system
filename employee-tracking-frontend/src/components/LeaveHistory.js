@@ -78,14 +78,14 @@ const LeaveHistory = () => {
                                 <td className="px-4 py-2 border">{request.reason}</td>
                                 <td className="px-4 py-2 border">{request.status}</td>
                                 <td className="px-4 py-2 border">
-                                    {request.status === 'DRAFT' && (
+                                    {/* {request.status === 'DRAFT' && (
                                         <button
                                             onClick={() => handleEditClick(request)}
                                             className="bg-blue-600 text-white py-1 px-3 rounded-lg hover:bg-blue-700"
                                         >
                                             Edit
                                         </button>
-                                    )}
+                                    )} */}
                                 </td>
                             </tr>
                         ))}
