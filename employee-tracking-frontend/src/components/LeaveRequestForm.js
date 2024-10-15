@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../AuthProvider';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const LeaveRequestForm = () => {
+const LeaveRequestForm = ({ existingRequest, onClose }) => {
     const { token } = useAuth();
     
     const initialFormData = {
@@ -17,6 +17,21 @@ const LeaveRequestForm = () => {
     };
     
     const [formData, setFormData] = useState(initialFormData);
+
+    // Pre-fill form if editing an existing request
+    useEffect(() => {
+        if (existingRequest) {
+            setFormData({
+                employee_name: existingRequest.employee_name || '',
+                employee_email: existingRequest.employee_email || '',
+                leave_type: existingRequest.leave_type || 'ANNUAL',
+                start_date: existingRequest.start_date || '',
+                end_date: existingRequest.end_date || '',
+                reason: existingRequest.reason || '',
+                status: existingRequest.status || 'DRAFT',
+            });
+        }
+    }, [existingRequest]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -33,30 +48,49 @@ const LeaveRequestForm = () => {
             ...formData,
             status: isDraft ? 'DRAFT' : 'PENDING'
         };
-
+    
         try {
-            await axios.post(
-                'http://localhost:8000/api/leave-requests/', 
-                leaveRequestData, 
-                {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+            if (existingRequest && existingRequest.id) {
+                // Update existing request using the correct ID
+                await axios.put(
+                    `http://localhost:8000/api/leave-requests/${existingRequest.id}/`, 
+                    leaveRequestData, 
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
                     }
-                }
-            );
-
-            toast.success(isDraft ? 'Leave request saved as draft' : 'Leave request submitted successfully');
+                );
+                toast.success(isDraft ? 'Draft saved successfully' : 'Leave request updated successfully');
+            } else {
+                // Create a new request
+                await axios.post(
+                    'http://localhost:8000/api/leave-requests/', 
+                    leaveRequestData, 
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                toast.success(isDraft ? 'Leave request saved as draft' : 'Leave request submitted successfully');
+            }
+            
             setFormData(initialFormData);  // Reset form
-
+            onClose();  // Close the form after submission
+    
         } catch (error) {
             console.error('Error submitting leave request:', error);
             toast.error('Error submitting leave request');
         }
     };
+    
 
     const handleCancel = () => {
         setFormData(initialFormData);  // Reset form
+        onClose();  // Close the form
         toast.info('Leave request canceled');
     };
 

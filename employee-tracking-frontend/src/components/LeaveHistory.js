@@ -1,34 +1,46 @@
-// LeaveHistory.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../AuthProvider';
+import LeaveRequestForm from './LeaveRequestForm'; // Import the form for editing
 
 const LeaveHistory = () => {
-    const { token } = useAuth(); // Get the token from the auth provider
+    const { token } = useAuth();
     const [leaveRequests, setLeaveRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [editingRequest, setEditingRequest] = useState(null); // For tracking the request being edited
+
+    // Define fetchLeaveRequests outside of useEffect so that it can be reused
+    const fetchLeaveRequests = async () => {
+        try {
+            const response = await axios.get('http://localhost:8000/api/leave-requests/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            setLeaveRequests(response.data);
+        } catch (error) {
+            setError('Error fetching leave requests');
+            console.error('Error fetching leave requests:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchLeaveRequests = async () => {
-            try {
-                const response = await axios.get('http://localhost:8000/api/leave-requests/', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                setLeaveRequests(response.data); // Update the state with leave requests
-            } catch (error) {
-                setError('Error fetching leave requests');
-                console.error('Error fetching leave requests:', error);
-            } finally {
-                setLoading(false); // Set loading to false when done
-            }
-        };
-
-        fetchLeaveRequests(); // Call the function to fetch data
+        fetchLeaveRequests(); // Fetch data when the component mounts
     }, [token]);
+
+    const handleEditClick = (request) => {
+        console.log('Editing request ID:', request?.id);
+        setEditingRequest(request);  // Set the request being edited
+    };
+
+    const handleFormClose = () => {
+        setEditingRequest(null); // Close the form when editing is done
+        fetchLeaveRequests(); // Refresh the leave requests after editing
+    };
 
     if (loading) {
         return <p>Loading leave history...</p>;
@@ -53,6 +65,7 @@ const LeaveHistory = () => {
                             <th className="px-4 py-2 border">End Date</th>
                             <th className="px-4 py-2 border">Reason</th>
                             <th className="px-4 py-2 border">Status</th>
+                            <th className="px-4 py-2 border">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -64,10 +77,29 @@ const LeaveHistory = () => {
                                 <td className="px-4 py-2 border">{new Date(request.end_date).toLocaleDateString()}</td>
                                 <td className="px-4 py-2 border">{request.reason}</td>
                                 <td className="px-4 py-2 border">{request.status}</td>
+                                <td className="px-4 py-2 border">
+                                    {request.status === 'DRAFT' && (
+                                        <button
+                                            onClick={() => handleEditClick(request)}
+                                            className="bg-blue-600 text-white py-1 px-3 rounded-lg hover:bg-blue-700"
+                                        >
+                                            Edit
+                                        </button>
+                                    )}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
+            )}
+
+            {editingRequest && (
+                <div className="mt-6">
+                    <LeaveRequestForm
+                        existingRequest={editingRequest}
+                        onClose={handleFormClose}  // Handle form close action
+                    />
+                </div>
             )}
         </div>
     );
