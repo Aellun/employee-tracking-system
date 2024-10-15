@@ -60,12 +60,13 @@ const HomePage = () => {
     <div className="flex flex-col h-screen bg-gray-100">
       {/* Navbar */}
       <nav className="navbar flex justify-between items-center px-6 py-4 bg-blue-600 text-white">
-        <h1 className="text-xl font-bold">Employee Tracking System</h1>
+        <h1 className="text-xl font-bold">ETS</h1>
         <ul className="flex space-x-6">
           <li><Link to="/tasks" className="hover:text-yellow-300">Tasks</Link></li>
-          <li><Link to="/track" className="hover:text-yellow-300">Time Tracker</Link></li>
+          {/* <li><Link to="/track" className="hover:text-yellow-300">Time Tracker</Link></li> */}
           <li><Link to="/timesheet" className="hover:text-yellow-300">Timesheet</Link></li>
           <li><Link to="/clockin" className="hover:text-yellow-300">Clock In</Link></li>
+          <li><Link to="/leave" className="hover:text-yellow-300">Leave</Link></li>
         </ul>
         {token && (
           <button

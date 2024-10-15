@@ -13,7 +13,8 @@ import HomePage from './pages/HomePage'; // Home page for employees
 import AdminHomePage from './pages/AdminHomePage'; // Admin home page
 import TimeClock from './components/TimeClock';
 import AdminTasksPage from './pages/AdminTasksPage';
-
+import LeaveRequestForm from './components/LeaveRequestForm';
+import LeavePage from './pages/LeavePage';
 function App() {  
   const [isTimeClockOpen, setIsTimeClockOpen] = useState(false); // State to manage Time Clock visibility
   const { token, isAdmin } = useAuth(); // Get auth values from context
@@ -36,10 +37,13 @@ function App() {
           {/* Protected Routes */}
           <Route path="/HomePage" element={token ? <HomePage /> : <Navigate to="/" />} />
           <Route path="/tasks" element={token ? <TasksPage /> : <Navigate to="/" />} />
-          <Route path="/track" element={token ? <TimeTrackerPage /> : <Navigate to="/" />} />
+          {/* <Route path="/track" element={token ? <TimeTrackerPage /> : <Navigate to="/" />} /> */}
           <Route path="/timesheet" element={token ? <TimesheetPage /> : <Navigate to="/" />} />
           <Route path="/clockin" element={token ? <TimeClock /> : <Navigate to="/" />} />
-
+          
+          {/* Leave Request Form Route */}
+          {/* <Route path="/leave" element={token ? <LeaveRequestForm /> : <Navigate to="/" />} /> */}
+          <Route path="/leave" element={token ? <LeavePage /> : <Navigate to="/" />} />
           {/* Admin Routes */}
           {isAdmin && (
             <>
@@ -48,7 +52,6 @@ function App() {
               <Route path="/admin/projects" element={token ? <ProjectsPage /> : <Navigate to="/" />} />
               <Route path="/admin/reports" element={token ? <ReportsPage /> : <Navigate to="/" />} />
               <Route path="/admin/tasks" element={token ? <AdminTasksPage /> : <Navigate to="/" />} />
-              
             </>
           )}
         </Routes>
