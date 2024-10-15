@@ -9,7 +9,6 @@ const LeaveRequestForm = () => {
     
     const initialFormData = {
         employee_name: '',
-        employee_id: '',
         employee_email: '',
         leave_type: 'ANNUAL',
         start_date: '',
@@ -48,9 +47,7 @@ const LeaveRequestForm = () => {
             );
 
             toast.success(isDraft ? 'Leave request saved as draft' : 'Leave request submitted successfully');
-            
-            // Clear the form after successful submit or draft
-            setFormData(initialFormData);
+            setFormData(initialFormData);  // Reset form
 
         } catch (error) {
             console.error('Error submitting leave request:', error);
@@ -59,14 +56,14 @@ const LeaveRequestForm = () => {
     };
 
     const handleCancel = () => {
-        setFormData(initialFormData);  // Clear the form
+        setFormData(initialFormData);  // Reset form
         toast.info('Leave request canceled');
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-gray-100">
-            <form onSubmit={(e) => handleSubmit(e, false)} className="w-full max-w-lg bg-white p-8 rounded-lg shadow-lg">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Leave Request Form</h2>
+        <div className="flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-100 to-purple-200">
+            <form onSubmit={(e) => handleSubmit(e, false)} className="w-full max-w-md bg-white p-6 rounded-xl shadow-lg space-y-6">
+                <h2 className="text-3xl font-bold text-gray-800 text-center">Request Leave</h2>
 
                 {/** Employee Name */}
                 <FormInput
@@ -74,15 +71,6 @@ const LeaveRequestForm = () => {
                     type="text"
                     name="employee_name"
                     value={formData.employee_name}
-                    onChange={handleChange}
-                />
-
-                {/** Employee ID */}
-                <FormInput
-                    label="Employee ID"
-                    type="text"
-                    name="employee_id"
-                    value={formData.employee_id}
                     onChange={handleChange}
                 />
 
@@ -135,29 +123,29 @@ const LeaveRequestForm = () => {
                     onChange={handleChange}
                 />
 
-                <div className="flex space-x-4 mt-6">
+                <div className="flex justify-between space-x-4">
                     {/** Submit Button */}
                     <button 
                         type="submit" 
-                        className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition duration-200"
+                        className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition"
                     >
-                        Submit Leave Request
+                        Submit
                     </button>
 
                     {/** Save as Draft Button */}
                     <button
                         type="button"
                         onClick={(e) => handleSubmit(e, true)}  // Save as draft
-                        className="w-full bg-gray-600 text-white font-semibold py-2 rounded-lg hover:bg-gray-700 transition duration-200"
+                        className="w-full bg-gray-500 text-white font-semibold py-2 rounded-lg hover:bg-gray-600 transition"
                     >
-                        Save as Draft
+                        Save Draft
                     </button>
 
                     {/** Cancel Button */}
                     <button
                         type="button"
                         onClick={handleCancel}
-                        className="w-full bg-red-600 text-white font-semibold py-2 rounded-lg hover:bg-red-700 transition duration-200"
+                        className="w-full bg-red-500 text-white font-semibold py-2 rounded-lg hover:bg-red-600 transition"
                     >
                         Cancel
                     </button>
@@ -169,28 +157,28 @@ const LeaveRequestForm = () => {
 
 // Form Input Component
 const FormInput = ({ label, type, name, value, onChange }) => (
-    <div className="mb-4">
-        <label className="block text-gray-700 font-medium mb-2">{label}:</label>
+    <div className="space-y-2">
+        <label className="block text-gray-700 font-medium">{label}:</label>
         <input 
             type={type} 
             name={name}
             value={value} 
             onChange={onChange} 
             required 
-            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
     </div>
 );
 
 // Form Select Component
 const FormSelect = ({ label, name, value, onChange, options }) => (
-    <div className="mb-4">
-        <label className="block text-gray-700 font-medium mb-2">{label}:</label>
+    <div className="space-y-2">
+        <label className="block text-gray-700 font-medium">{label}:</label>
         <select 
             name={name}
             value={value} 
             onChange={onChange} 
-            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
             {options.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -203,14 +191,14 @@ const FormSelect = ({ label, name, value, onChange, options }) => (
 
 // Form Textarea Component
 const FormTextarea = ({ label, name, value, onChange }) => (
-    <div className="mb-6">
-        <label className="block text-gray-700 font-medium mb-2">{label}:</label>
+    <div className="space-y-2">
+        <label className="block text-gray-700 font-medium">{label}:</label>
         <textarea 
             name={name}
             value={value} 
             onChange={onChange} 
             required 
-            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
     </div>
 );
