@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../AuthProvider'; // Adjust the path if necessary
-import '../css/TimesheetPage.css'; // Import custom CSS
+import '../css/TimesheetPage.css'; // Import custom CSS for styling
 
 const TimesheetPage = () => {
-  const [timeEntries, setTimeEntries] = useState([]); // Change to array
+  const [timeEntries, setTimeEntries] = useState([]); // Array for time entries
   const { token } = useAuth();
   const [selectedDate, setSelectedDate] = useState('');
   const [expandedDates, setExpandedDates] = useState({}); // Track expanded/minimized states
@@ -14,7 +14,7 @@ const TimesheetPage = () => {
     if (token) {
       fetchTimeEntries();
     }
-  }, [token, selectedDate]); // Fetch on token change and selected date change
+  }, [token, selectedDate]); // Fetch when token or date changes
 
   const fetchTimeEntries = async () => {
     try {
@@ -22,22 +22,13 @@ const TimesheetPage = () => {
         headers: { Authorization: `Bearer ${token}` },
         params: { date: selectedDate || undefined },
       });
-
-      console.log('API Response:', response.data); // Log the API response to check structure
       setTimeEntries(response.data || []); // Set state to the response data (array)
-
-      // Log the state right after setting it
-      console.log('State updated to:', response.data);
-      
     } catch (error) {
-      console.error('Error fetching time entries:', error);
-      setError('Failed to fetch time entries. Please try again later.'); // Set user-friendly error
+      setError('Failed to fetch time entries. Please try again later.'); // User-friendly error message
     }
   };
 
-  const handleDateChange = (e) => {
-    setSelectedDate(e.target.value);
-  };
+  const handleDateChange = (e) => setSelectedDate(e.target.value);
 
   const handleFilterSubmit = (e) => {
     e.preventDefault();
@@ -47,54 +38,46 @@ const TimesheetPage = () => {
   const toggleExpand = (date) => {
     setExpandedDates((prevState) => ({
       ...prevState,
-      [date]: !prevState[date], // Toggle the expand/minimize state for the date
+      [date]: !prevState[date], // Toggle expanded state for the date
     }));
   };
 
-  // Helper function to parse date safely
   const parseDate = (dateString) => {
     const date = new Date(dateString);
-    return isNaN(date) ? null : date; // Return null if the date is invalid
+    return isNaN(date) ? null : date; // Return null if invalid date
   };
 
-  // Group clock-in records by date
   const groupByDate = (records) => {
-    if (!Array.isArray(records)) {
-      console.error('Expected an array for grouping, but received:', records);
-      return {};
-    }
+    if (!Array.isArray(records)) return {};
     return records.reduce((groups, record) => {
       const date = parseDate(record.time_clocked_in)?.toLocaleDateString() || 'Invalid Date';
-      if (!groups[date]) {
-        groups[date] = [];
-      }
+      if (!groups[date]) groups[date] = [];
       groups[date].push(record);
       return groups;
     }, {});
   };
 
-  // Grouped entries by date
   const groupedEntries = groupByDate(timeEntries);
 
   return (
-    <div className="container">
-      <h1>Timesheet</h1>
+    <div className="timesheet-container">
+      <h1 className="page-title">Timesheet</h1>
       {error && <div className="error-message">{error}</div>} {/* Display error message */}
+      
       <div className="filter-container">
-        <form onSubmit={handleFilterSubmit}>
+        <form onSubmit={handleFilterSubmit} className="filter-form">
           <input
             type="date"
             value={selectedDate}
             onChange={handleDateChange}
-            className="border rounded p-2 mr-2"
+            className="date-picker"
           />
-          <button type="submit" className="button">Filter</button>
+          <button type="submit" className="filter-button">Filter</button>
         </form>
       </div>
 
-      {/* Display grouped time entries by date */}
       {Object.keys(groupedEntries).length === 0 ? (
-        <div>No entries available for the selected date.</div>
+        <div className="no-entries">No entries available for the selected date.</div>
       ) : (
         Object.keys(groupedEntries).map((date) => (
           <div key={date} className="date-section">
@@ -102,14 +85,13 @@ const TimesheetPage = () => {
               {date} {expandedDates[date] ? '▲' : '▼'}
             </h3>
 
-            {/* Expand/Collapse time entries for each date */}
             {expandedDates[date] && (
-              <table className="table">
+              <table className="entry-table">
                 <thead>
                   <tr>
-                    <th>Time in - out</th>
+                    <th>Time In - Out</th>
                     <th>Duration</th>
-                    <th>Break Type</th> {/* Updated from Job to Break Type */}
+                    <th>Break Type</th>
                     <th>Notes</th>
                   </tr>
                 </thead>
@@ -122,23 +104,23 @@ const TimesheetPage = () => {
                           {entry.time_clocked_out ? parseDate(entry.time_clocked_out)?.toLocaleTimeString() : 'N/A'}
                         </td>
                         <td>{formatDuration(entry.time_clocked_in, entry.time_clocked_out)}</td>
-                        <td>{entry.breaks.length > 0 ? entry.breaks[0].break_type : 'N/A'}</td> {/* Display break type */}
+                        <td>{entry.breaks.length > 0 ? entry.breaks[0].break_type : 'N/A'}</td>
                         <td>{entry.notes || 'N/A'}</td>
                       </tr>
 
-                      {/* Display breaks under the associated clock-in record */}
                       {entry.breaks && entry.breaks.map((breakEntry) => (
-                        <tr key={breakEntry.id} className="break-row">
-                          <td>
-                            &nbsp;&nbsp;
-                            {parseDate(breakEntry.time_started)?.toLocaleTimeString() || 'Invalid Time'} -{' '}
-                            {breakEntry.time_ended ? parseDate(breakEntry.time_ended)?.toLocaleTimeString() : 'Ongoing'}
-                          </td>
-                          <td>{formatDuration(breakEntry.time_started, breakEntry.time_ended)}</td>
-                          <td>{breakEntry.break_type || 'N/A'}</td>
-                          <td>Break</td>
-                        </tr>
-                      ))}
+                      <tr key={breakEntry.id} className="break-row">
+                        <td>
+                          &nbsp;&nbsp;
+                          {parseDate(breakEntry.time_started)?.toLocaleTimeString() || 'Invalid Time'} -{' '}
+                          {breakEntry.time_ended ? parseDate(breakEntry.time_ended)?.toLocaleTimeString() : 'Ongoing'}
+                        </td>
+                        <td>{formatDuration(breakEntry.time_started, breakEntry.time_ended)}</td>
+                        <td>{breakEntry.break_type || 'N/A'}</td>
+                        <td>Break</td>
+                      </tr>
+                    ))}
+
                     </React.Fragment>
                   ))}
                 </tbody>
@@ -151,29 +133,17 @@ const TimesheetPage = () => {
   );
 };
 
-// Function to calculate the duration between clock-in and clock-out or breaks
 const formatDuration = (start, end) => {
-  if (!end || end === 'N/A') return 'Ongoing'; // Handle ongoing cases
+  if (!end || end === 'N/A') return 'Ongoing';
   const startDate = new Date(start);
   const endDate = new Date(end);
-  if (!startDate || !endDate || isNaN(startDate) || isNaN(endDate)) return 'Invalid Duration'; // Handle invalid dates
+  if (isNaN(startDate) || isNaN(endDate)) return 'Invalid Duration';
 
   const diff = (endDate - startDate) / (1000 * 60); // Difference in minutes
-
-  // Return 0 if the total duration is less than 1 minute
-  if (diff < 1) {
-    return '0';
-  }
-
   const hours = Math.floor(diff / 60);
-  const minutes = Math.floor(diff % 60); // Round down minutes
+  const minutes = Math.floor(diff % 60);
 
-  // Format duration
-  if (hours > 0) {
-    return `${hours}h ${minutes < 10 ? '0' : ''}${minutes}`; // Format as "hh:mm"
-  } else {
-    return `${minutes}m`; // Return only minutes if less than an hour
-  }
+  return hours > 0 ? `${hours}h ${minutes < 10 ? '0' : ''}${minutes}m` : `${minutes}m`;
 };
 
 export default TimesheetPage;

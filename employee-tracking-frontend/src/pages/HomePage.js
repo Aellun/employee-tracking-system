@@ -88,12 +88,16 @@ const HomePage = () => {
         </ul>
         {/* Logout Button */}
         <button
-          onClick={handleLogout}
-          className="mt-2 bg-red-500 px-2 py-1 rounded-lg hover:bg-red-700 transition-all text-sm flex items-center"
-        >
-          <FaSignOutAlt className="mr-1" />
-          Logout
-        </button>
+  onClick={handleLogout}
+  className="mt-2 rounded-lg transition-all text-sm inline-flex items-center text-red-500 hover:text-red-700"
+>
+  <FaSignOutAlt className="mr-1" />
+  Logout
+</button>
+
+
+
+
       </aside>
 
       <div className="flex flex-col flex-grow">
