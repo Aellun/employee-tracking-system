@@ -5,9 +5,9 @@
   min-height: calc(100vh - 4rem); /* Adjust according to the height of your navbar */
 }
 
-/* Optional: Customize the welcome heading */
+
 .welcome-heading {
-  font-size: 2.5rem; /* You can adjust the font size */
+  font-size: 1.5rem; 
 }
 
 /* Optional: Customize the paragraph text */
