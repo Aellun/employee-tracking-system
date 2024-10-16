@@ -119,3 +119,37 @@ class BreakRecord(models.Model):
             duration = (self.time_ended - self.time_started).total_seconds() / 3600
             return round(duration, 2)
         return 0
+
+
+class LeaveRequest(models.Model):
+    LEAVE_TYPES = [
+        ('ANNUAL', 'Annual Leave'),
+        ('SICK', 'Sick Leave'),
+        ('CASUAL', 'Casual Leave'),
+        ('MATERNITY', 'Maternity Leave'),
+    ]
+
+    employee_name = models.CharField(max_length=100)
+    employee_email = models.EmailField(max_length=100)
+    leave_type = models.CharField(max_length=20, choices=LEAVE_TYPES)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    reason = models.TextField()
+    status = models.CharField(max_length=10, default='PENDING')
+
+    # Use the User model for the association
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="leave_requests", default=1)
+
+    def __str__(self):
+        return f"{self.employee_name} - {self.leave_type}"
+    
+
+class LeaveBalance(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    annual = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    sick = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    casual = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    maternity = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f'{self.user.username} Leave Balance'

@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework import viewsets, permissions
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -15,6 +16,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from rest_framework import generics
 from django.contrib.auth.decorators import login_required
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.exceptions import ValidationError
 
 from .models import (
     Employee,
@@ -23,7 +27,9 @@ from .models import (
     TimeEntry,
     ClockInRecord,
     BreakRecord,
-    ClockInRecord
+    ClockInRecord,
+    LeaveRequest,
+    LeaveBalance
 )
 
 from .serializers import (
@@ -33,7 +39,9 @@ from .serializers import (
     TimeEntrySerializer,
     TaskUpdateSerializer,
     ClockInRecordSerializer,
-    BreakRecordSerializer
+    BreakRecordSerializer,
+    LeaveRequestSerializer,
+    LeaveBalanceSerializer
 )
 
 User = get_user_model()
@@ -57,10 +65,27 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 class TimeEntryViewSet(viewsets.ModelViewSet):
     queryset = TimeEntry.objects.all()
     serializer_class = TimeEntrySerializer
+
+
+# Task ViewSet
+class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+
+# Leave Request ViewSet
+class LeaveRequestViewSet(viewsets.ModelViewSet):
+    queryset = LeaveRequest.objects.all()
+    serializer_class = LeaveRequestSerializer
+
+# Clock In Record ViewSet
+class ClockInRecordViewSet(viewsets.ModelViewSet):
+    queryset = ClockInRecord.objects.all()
+    serializer_class = ClockInRecordSerializer
 
 # Existing Login Logic
 class LoginView(APIView):
@@ -429,3 +454,53 @@ def check_active_clock_in(request):
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LeaveRequestViewSet(viewsets.ModelViewSet):
+    queryset = LeaveRequest.objects.none()  # Empty queryset
+    serializer_class = LeaveRequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Only return leave requests for the authenticated user
+        return LeaveRequest.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # Automatically associate the leave request with the authenticated user
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        # Only allow editing if the leave request is in DRAFT status
+        instance = self.get_object()
+        if instance.status != 'DRAFT':
+            raise ValidationError("You can only edit leave requests in DRAFT status.")
+        serializer.save()
+
+
+class LeaveBalanceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        # Try to get leave balance, if it doesn't exist, create a default one
+        leave_balance, created = LeaveBalance.objects.get_or_create(
+            user=user,
+            defaults={
+                'annual': 21, 
+                'sick': 14,
+                'casual': 7,
+                'maternity': 40
+            }
+        )
+        serializer = LeaveBalanceSerializer(leave_balance)
+        return Response(serializer.data)
+@receiver(post_save, sender=User)
+def create_leave_balance(sender, instance, created, **kwargs):
+    if created:
+        LeaveBalance.objects.create(
+            user=instance,
+            annual=21,
+            sick=14,
+            casual=7,
+            maternity=40
+        )

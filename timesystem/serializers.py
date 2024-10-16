@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Employee, Project, Task, TimeEntry, ClockInRecord, BreakRecord
+from .models import Employee, Project, Task, TimeEntry, ClockInRecord, BreakRecord, LeaveRequest,LeaveBalance
 from django.contrib.auth.models import User
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -54,3 +54,14 @@ class ClockInRecordSerializer(serializers.ModelSerializer):
         model = ClockInRecord
         fields = ['id', 'user', 'user_id', 'time_clocked_in', 'time_clocked_out', 'hours_worked', 'extra_hours', 'breaks']
 
+
+class LeaveRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LeaveRequest
+        fields = ['employee_name', 'employee_email', 'leave_type', 'start_date', 'end_date', 'reason', 'status']
+
+
+class LeaveBalanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LeaveBalance
+        fields = ['annual', 'sick', 'casual', 'maternity']
