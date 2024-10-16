@@ -2,6 +2,8 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework import status
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Count
@@ -215,3 +217,40 @@ class AdminStatisticsView(APIView):
         }
 
         return JsonResponse(data)
+
+
+class LeaveRequestListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        leave_requests = LeaveRequest.objects.all()
+        serializer = LeaveRequestSerializer(leave_requests, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class LeaveRequestDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, leaveId):
+        try:
+            return LeaveRequest.objects.get(id=leaveId)
+        except LeaveRequest.DoesNotExist:
+            return None
+
+    def put(self, request, leaveId):
+        leave_request = self.get_object(leaveId)
+        if not leave_request:
+            return Response({'error': 'Leave request not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = LeaveRequestSerializer(leave_request, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, leaveId):
+        leave_request = self.get_object(leaveId)
+        if not leave_request:
+            return Response({'error': 'Leave request not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        leave_request.delete()
+        return Response({'message': 'Leave request deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
