@@ -224,6 +224,27 @@ class LeaveRequestListView(APIView):
 
     def get(self, request):
         leave_requests = LeaveRequest.objects.all()
+        
+        # Get query parameters for filtering
+        employee_name = request.query_params.get('employee_name', None)
+        start_date = request.query_params.get('start_date', None)
+        end_date = request.query_params.get('end_date', None)
+        status_param = request.query_params.get('status', None)
+
+        # Apply filters
+        if employee_name:
+            leave_requests = leave_requests.filter(employee_name__icontains=employee_name)
+        if start_date:
+            parsed_start_date = parse_datetime(start_date)
+            if parsed_start_date:
+                leave_requests = leave_requests.filter(start_date__gte=parsed_start_date)
+        if end_date:
+            parsed_end_date = parse_datetime(end_date)
+            if parsed_end_date:
+                leave_requests = leave_requests.filter(end_date__lte=parsed_end_date)
+        if status_param:
+            leave_requests = leave_requests.filter(status=status_param)
+
         serializer = LeaveRequestSerializer(leave_requests, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

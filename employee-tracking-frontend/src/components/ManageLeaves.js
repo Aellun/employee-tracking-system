@@ -5,8 +5,13 @@ import { useAuth } from '../AuthProvider';
 const ManageLeaves = () => {
   const { token } = useAuth();
   const [leaveRequests, setLeaveRequests] = useState([]);
+  const [filteredLeaves, setFilteredLeaves] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [employeeName, setEmployeeName] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   // Fetch leave requests
   useEffect(() => {
@@ -16,6 +21,7 @@ const ManageLeaves = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setLeaveRequests(response.data);
+        setFilteredLeaves(response.data); // Initialize filtered leaves
       } catch (err) {
         setError('Error fetching leave requests.');
       } finally {
@@ -26,6 +32,28 @@ const ManageLeaves = () => {
     fetchLeaveRequests();
   }, [token]);
 
+  // Filter leave requests based on input criteria
+  const handleFilter = () => {
+    let filtered = leaveRequests;
+
+    if (employeeName) {
+      filtered = filtered.filter(leave => 
+        leave.employee_name.toLowerCase().includes(employeeName.toLowerCase())
+      );
+    }
+    if (startDate) {
+      filtered = filtered.filter(leave => new Date(leave.start_date) >= new Date(startDate));
+    }
+    if (endDate) {
+      filtered = filtered.filter(leave => new Date(leave.end_date) <= new Date(endDate));
+    }
+    if (statusFilter) {
+      filtered = filtered.filter(leave => leave.status === statusFilter);
+    }
+
+    setFilteredLeaves(filtered);
+  };
+
   // Update leave status
   const handleUpdateLeaveStatus = async (leaveId, status) => {
     if (window.confirm(`Are you sure you want to ${status.toLowerCase()} this leave request?`)) {
@@ -35,7 +63,7 @@ const ManageLeaves = () => {
           { status },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setLeaveRequests((prevState) =>
+        setFilteredLeaves((prevState) =>
           prevState.map((leave) =>
             leave.id === leaveId ? { ...leave, status: response.data.status } : leave
           )
@@ -53,7 +81,7 @@ const ManageLeaves = () => {
         await axios.delete(`http://localhost:8000/admin-dashboard/api/leaves/${leaveId}/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setLeaveRequests((prevState) =>
+        setFilteredLeaves((prevState) =>
           prevState.filter((leave) => leave.id !== leaveId)
         );
       } catch (err) {
@@ -70,6 +98,40 @@ const ManageLeaves = () => {
 
       {error && <p className="text-red-600">{error}</p>}
 
+      {/* Filter Inputs */}
+      <div className="flex space-x-4 mb-4">
+        <input
+          type="text"
+          placeholder="Employee Name"
+          value={employeeName}
+          onChange={e => setEmployeeName(e.target.value)}
+          className="p-2 border rounded"
+        />
+        <input
+          type="date"
+          value={startDate}
+          onChange={e => setStartDate(e.target.value)}
+          className="p-2 border rounded"
+        />
+        <input
+          type="date"
+          value={endDate}
+          onChange={e => setEndDate(e.target.value)}
+          className="p-2 border rounded"
+        />
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className="p-2 border rounded"
+        >
+          <option value="">All Statuses</option>
+          <option value="PENDING">Pending</option>
+          <option value="APPROVED">Approved</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+        <button onClick={handleFilter} className="p-2 bg-blue-500 text-white rounded">Filter</button>
+      </div>
+
       <table className="min-w-full border-collapse border border-gray-300 mt-4">
         <thead>
           <tr className="bg-gray-100 text-gray-700">
@@ -84,7 +146,7 @@ const ManageLeaves = () => {
           </tr>
         </thead>
         <tbody>
-          {leaveRequests.map((leave) => (
+          {filteredLeaves.map((leave) => (
             <tr key={leave.id} className="hover:bg-gray-50">
               <td className="border border-gray-300 px-4 py-2">{leave.employee_name}</td>
               <td className="border border-gray-300 px-4 py-2">{leave.employee_email}</td>
