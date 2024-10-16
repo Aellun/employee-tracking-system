@@ -31,9 +31,8 @@ const AdminHomePage = () => {
     totalEmployees: 0,
     totalProjects: 0,
     totalTasks: 0,
-    totalClockIns: 0,  // New statistic
-    totalBreaksTaken: 0,  // New statistic
-    totalLeaveRequests: 0,  // New statistic
+    totalClockIns: 0, 
+    totalLeaveRequests: 0, 
     leaveBalances: {
       annual: 0,
       sick: 0,
@@ -51,7 +50,7 @@ const AdminHomePage = () => {
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/admin/statistics/', {
+        const response = await axios.get('http://localhost:8000/admin-dashboard/api/statistics/admin/', {
           headers: {
             'Authorization': `Bearer ${token}`, // Ensure the token is passed here
           },
@@ -150,41 +149,39 @@ const AdminHomePage = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-grow p-6 container mx-auto space-y-8">
-          <section className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-3xl font-semibold mb-4">Welcome to the Admin Dashboard</h2>
-            <p className="text-lg">
-              Here you can manage employees, projects, reports, tasks, and leaves. Use the navigation on the left to access different sections.
-            </p>
+<main className="flex-grow p-6 container mx-auto space-y-8">
+  <section className="bg-white p-8 rounded-lg shadow-lg">
+    <h2 className="text-3xl font-semibold mb-4 flex items-center">
+      <span className="mr-2 text-blue-500">
+        <FaChartLine size={30} />
+      </span>
+      Welcome to the Admin Dashboard
+    </h2>
+    <p className="text-lg text-gray-600 mb-6">
+      Here you can manage employees, projects, reports, tasks, and leaves. Use the navigation on the left to access different sections.
+    </p>
 
-            {/* Numerical Data */}
-            <div className="grid grid-cols-3 gap-6 mt-6">
-              <div className="bg-gray-100 p-4 rounded shadow-md">
-                <h3 className="text-xl font-semibold">Total Employees</h3>
-                <p className="text-3xl">{statistics.totalEmployees}</p>
-              </div>
-              <div className="bg-gray-100 p-4 rounded shadow-md">
-                <h3 className="text-xl font-semibold">Total Projects</h3>
-                <p className="text-3xl">{statistics.totalProjects}</p>
-              </div>
-              <div className="bg-gray-100 p-4 rounded shadow-md">
-                <h3 className="text-xl font-semibold">Total Tasks</h3>
-                <p className="text-3xl">{statistics.totalTasks}</p>
-              </div>
-              <div className="bg-gray-100 p-4 rounded shadow-md">
-                <h3 className="text-xl font-semibold">Total Clock-ins</h3>
-                <p className="text-3xl">{statistics.totalClockIns}</p>
-              </div>
-              <div className="bg-gray-100 p-4 rounded shadow-md">
-                <h3 className="text-xl font-semibold">Total Breaks Taken</h3>
-                <p className="text-3xl">{statistics.totalBreaksTaken}</p>
-              </div>
-              <div className="bg-gray-100 p-4 rounded shadow-md">
-                <h3 className="text-xl font-semibold">Total Leave Requests</h3>
-                <p className="text-3xl">{statistics.totalLeaveRequests}</p>
-              </div>
-            </div>
-          </section>
+    {/* Numerical Data */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {[
+        { label: "Total Employees", value: statistics.totalEmployees, icon: <FaUserFriends className="text-blue-600" /> },
+        { label: "Total Projects", value: statistics.totalProjects, icon: <FaProjectDiagram className="text-green-600" /> },
+        { label: "Total Tasks", value: statistics.totalTasks, icon: <FaTasks className="text-yellow-600" /> },
+        { label: "Total Clock-ins", value: statistics.totalClockIns, icon: <FaClock className="text-purple-600" /> },
+        { label: "Total Leave Requests", value: statistics.totalLeaveRequests, icon: <FaCalendarAlt className="text-red-600" /> },
+      ].map((item, index) => (
+        <div key={index} className="bg-gray-100 p-4 rounded-lg shadow-md transition duration-300 hover:shadow-lg">
+          <div className="flex items-center mb-2">
+            <span className="text-2xl mr-2">{item.icon}</span>
+            <h3 className="text-xl font-semibold">{item.label}</h3>
+          </div>
+          <p className="text-3xl font-bold text-gray-800">{item.value}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+
 
           {/* Graphical Data */}
           <section className="bg-white p-6 rounded-lg shadow-md">

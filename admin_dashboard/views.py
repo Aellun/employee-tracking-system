@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -6,12 +7,26 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Count
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
-from .models import Employee, Project, Task, LeaveBalance, TimeEntry, ClockInRecord, LeaveRequest
-from .serializers import EmployeeSerializer, ProjectSerializer, TimeEntrySerializer
-
+from timesystem.models import Employee, Project, Task, LeaveBalance, TimeEntry, ClockInRecord, LeaveRequest
+from .serializers import (
+    EmployeeSerializer, 
+    ProjectSerializer, 
+    TaskSerializer, 
+    TimeEntrySerializer, 
+    LeaveRequestSerializer, 
+    LeaveBalanceSerializer,
+    ClockInRecordSerializer
+)
 
 # --- List and create employees ---
 class EmployeeListCreateView(generics.ListCreateAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# --- Retrieve, update, and delete an employee ---
+class EmployeeDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
     permission_classes = [IsAuthenticated]
@@ -24,6 +39,13 @@ class ProjectListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
 
+# --- Retrieve, update, and delete a project ---
+class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated]
+
+
 # --- List and create time entries ---
 class TimeEntryListCreateView(generics.ListCreateAPIView):
     queryset = TimeEntry.objects.all()
@@ -31,34 +53,59 @@ class TimeEntryListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
 
-# --- List all employees (for use in employee management) ---
-@require_http_methods(["GET"])
-@login_required
-def list_users(request):
-    employees = Employee.objects.all()
-    employee_data = [{"id": emp.id, "name": f"{emp.first_name} {emp.last_name}", "email": emp.email} for emp in employees]
-    return JsonResponse(employee_data, safe=False, status=200)
+# --- Retrieve, update, and delete a time entry ---
+class TimeEntryDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = TimeEntry.objects.all()
+    serializer_class = TimeEntrySerializer
+    permission_classes = [IsAuthenticated]
 
 
-# --- Delete a user by ID (for user management) ---
-@require_http_methods(["POST"])
-@login_required
-def delete_user(request, user_id):
-    try:
-        user = get_object_or_404(Employee, id=user_id)  # Changed to Employee model
-        user.delete()
-        return JsonResponse({"message": "User deleted successfully"}, status=200)
-    except ObjectDoesNotExist:
-        return JsonResponse({"error": "User not found"}, status=404)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+# --- List and create leave requests ---
+class LeaveRequestListCreateView(generics.ListCreateAPIView):
+    queryset = LeaveRequest.objects.all()
+    serializer_class = LeaveRequestSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# --- Retrieve, update, and delete a leave request ---
+class LeaveRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = LeaveRequest.objects.all()
+    serializer_class = LeaveRequestSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# --- List and create leave balances ---
+class LeaveBalanceListCreateView(generics.ListCreateAPIView):
+    queryset = LeaveBalance.objects.all()
+    serializer_class = LeaveBalanceSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# --- Retrieve, update, and delete a leave balance ---
+class LeaveBalanceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = LeaveBalance.objects.all()
+    serializer_class = LeaveBalanceSerializer
+    permission_classes = [IsAuthenticated]
+
+
+# --- Clock In Records CRUD ---
+class ClockInRecordListCreateView(generics.ListCreateAPIView):
+    queryset = ClockInRecord.objects.all()
+    serializer_class = ClockInRecordSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class ClockInRecordDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ClockInRecord.objects.all()
+    serializer_class = ClockInRecordSerializer
+    permission_classes = [IsAuthenticated]
 
 
 # --- Employee statistics (total employees and positions) ---
 @login_required
 def employee_statistics(request):
     total_employees = Employee.objects.count()
-    total_positions = Employee.objects.values('role').distinct().count()  # Changed 'position' to 'role'
+    total_positions = Employee.objects.values('position').distinct().count()  # Changed 'role' to 'position'
 
     return JsonResponse({
         'total_employees': total_employees,
@@ -136,36 +183,35 @@ def leave_balance_statistics(request):
     })
 
 
-# --- Admin statistics (aggregates multiple stats for the dashboard) ---
-@login_required
-def admin_statistics(request):
-    total_employees = Employee.objects.count()
-    total_projects = Project.objects.count()
-    total_tasks = Task.objects.count()
-    total_clockins = ClockInRecord.objects.count()
-    total_breaks_taken = TimeEntry.objects.filter(is_break=True).count()  # Assuming breaks are flagged
-    total_leave_requests = LeaveRequest.objects.count()
+class AdminStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    leave_balances = LeaveBalance.objects.aggregate(
-        total_annual=Sum('annual'),
-        total_sick=Sum('sick'),
-        total_casual=Sum('casual'),
-        total_maternity=Sum('maternity')
-    )
+    def get(self, request):
+        total_employees = Employee.objects.count()
+        total_projects = Project.objects.count()
+        total_tasks = Task.objects.count()
+        total_clockins = ClockInRecord.objects.count()
+        total_leave_requests = LeaveRequest.objects.count()
 
-    data = {
-        'totalEmployees': total_employees,
-        'totalProjects': total_projects,
-        'totalTasks': total_tasks,
-        'totalClockIns': total_clockins,
-        'totalBreaksTaken': total_breaks_taken,
-        'totalLeaveRequests': total_leave_requests,
-        'leaveBalances': {
-            'annual': leave_balances['total_annual'] or 0,
-            'sick': leave_balances['total_sick'] or 0,
-            'casual': leave_balances['total_casual'] or 0,
-            'maternity': leave_balances['total_maternity'] or 0,
+        leave_balances = LeaveBalance.objects.aggregate(
+            total_annual=Sum('annual'),
+            total_sick=Sum('sick'),
+            total_casual=Sum('casual'),
+            total_maternity=Sum('maternity')
+        )
+
+        data = {
+            'totalEmployees': total_employees,
+            'totalProjects': total_projects,
+            'totalTasks': total_tasks,
+            'totalClockIns': total_clockins,
+            'totalLeaveRequests': total_leave_requests,
+            'leaveBalances': {
+                'annual': leave_balances['total_annual'] or 0,
+                'sick': leave_balances['total_sick'] or 0,
+                'casual': leave_balances['total_casual'] or 0,
+                'maternity': leave_balances['total_maternity'] or 0,
+            }
         }
-    }
 
-    return JsonResponse(data)
+        return JsonResponse(data)

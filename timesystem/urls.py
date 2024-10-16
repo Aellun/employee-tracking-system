@@ -72,4 +72,5 @@ urlpatterns = [
 
     # Django admin
     path('admin/', admin.site.urls),
+    path('admin-dashboard/', include('admin_dashboard.urls')),
 ]
