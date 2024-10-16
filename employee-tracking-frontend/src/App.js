@@ -25,7 +25,7 @@ function App() {
   const { token, isAdmin } = useAuth(); // Get auth values from context
 
   return (  
-    <Router> {/* Replaced HashRouter with BrowserRouter */}
+    <Router> 
       <div>  
         {/* Render the Time Clock window conditionally */}
         {isTimeClockOpen && (
@@ -49,11 +49,12 @@ function App() {
           {/* Admin Routes */}
           {isAdmin && (
             <>
-              <Route path="/admin" element={token ? <AdminDashboard /> : <Navigate to="/" />} />
+              <Route path="/admin" element={token ? <AdminHomePage /> : <Navigate to="/" />} />
               <Route path="/admin/employees" element={token ? <EmployeesPage /> : <Navigate to="/" />} />
               <Route path="/admin/projects" element={token ? <ProjectsPage /> : <Navigate to="/" />} />
               <Route path="/admin/reports" element={token ? <ReportsPage /> : <Navigate to="/" />} />
               <Route path="/admin/tasks" element={token ? <AdminTasksPage /> : <Navigate to="/" />} />
+              <Route path="/admin/dashboard" element={token ? <AdminDashboard /> : <Navigate to="/" />} />
               
               {/* New Admin Management Routes */}
               <Route path="/admin/manage-users" element={token ? <ManageUsers /> : <Navigate to="/" />} />
