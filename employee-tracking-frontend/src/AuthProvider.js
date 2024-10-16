@@ -3,25 +3,29 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => JSON.parse(localStorage.getItem('isAdmin')) || false); // Retrieve isAdmin from localStorage
   const [token, setToken] = useState(localStorage.getItem('authToken') || null);
-  const [userId, setUserId] = useState(localStorage.getItem('userId') || null); // New userId state
+  const [userId, setUserId] = useState(localStorage.getItem('userId') || null);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('authToken');
-    const storedUserId = localStorage.getItem('userId'); // Retrieve userId from localStorage
+    const storedUserId = localStorage.getItem('userId');
+    const storedIsAdmin = JSON.parse(localStorage.getItem('isAdmin')); // Retrieve isAdmin from localStorage
+    
     if (storedToken) setToken(storedToken);
     if (storedUserId) setUserId(storedUserId);
+    if (storedIsAdmin !== null) setIsAdmin(storedIsAdmin); // Set isAdmin state
   }, []);
 
   const login = (userData) => {
     console.log('Login called with:', userData);
     localStorage.setItem('authToken', userData.token);
-    localStorage.setItem('userId', userData.user_id); // Store userId in localStorage
+    localStorage.setItem('userId', userData.user_id);
     localStorage.setItem('username', userData.username);
+    localStorage.setItem('isAdmin', JSON.stringify(userData.is_admin)); // Store isAdmin in localStorage
     setToken(userData.token);
-    setUserId(userData.user_id); // Set userId state
-    setIsAdmin(userData.is_admin);
+    setUserId(userData.user_id);
+    setIsAdmin(userData.is_admin); // Set isAdmin state
   };
 
   const logout = () => {
@@ -31,10 +35,11 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('recordId');
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
-    localStorage.removeItem('breakActive');  // Remove breakActive
-    localStorage.removeItem('totalWorkedSeconds');  // Remove totalWorkedSeconds
+    localStorage.removeItem('isAdmin');  // Remove isAdmin
+    localStorage.removeItem('breakActive');
+    localStorage.removeItem('totalWorkedSeconds');
     setToken(null);
-    setUserId(null); // Reset userId state
+    setUserId(null);
     setIsAdmin(false);
   };
 
