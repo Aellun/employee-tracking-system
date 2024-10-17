@@ -1,11 +1,17 @@
 from django.urls import path
 from . import views
-from .views import AdminStatisticsView, LeaveRequestListView, LeaveRequestDetailView, EmployeeListView, EmployeeDetailView
+from .views import AdminStatisticsView, LeaveRequestListView, LeaveRequestDetailView, EmployeeListView, EmployeeDetailView, TaskDetailView, TaskListView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 urlpatterns = [
     # Employee URLs
-    path('api/employees/', EmployeeListView.as_view(), name='employee-list'),
+    path('api/employees/', views.UserListView.as_view(), name='user-list'),
     path('api/employees/<int:employee_id>/', EmployeeDetailView.as_view(), name='employee-detail'),
+
+    # Task URLs
+    path('api/tasks/<int:id>/', TaskDetailView.as_view(), name='task-detail'),
+
+    path('api/tasks/', TaskListView.as_view(), name='task-list'),
 
     # Project URLs
     path('api/projects/', views.ProjectListCreateView.as_view(), name='project-list-create'),
@@ -25,9 +31,9 @@ urlpatterns = [
 
     # Leave URLs
     path('api/leaves/', LeaveRequestListView.as_view(), name='leave-request-list'),
-    path('api/leaves/<int:leave_id>/', LeaveRequestDetailView.as_view(), name='leave-request-detail'),  # Changed to snake_case
+    path('api/leaves/<int:leave_id>/', LeaveRequestDetailView.as_view(), name='leave-request-detail'),
+
+    # JWT Token URLs
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
-
 ]

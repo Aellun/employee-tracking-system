@@ -2,6 +2,13 @@ from rest_framework import serializers
 from .models import Employee, Project, Task, TimeEntry, ClockInRecord, BreakRecord, LeaveRequest,LeaveBalance
 from django.contrib.auth.models import User
 
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+
+
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee

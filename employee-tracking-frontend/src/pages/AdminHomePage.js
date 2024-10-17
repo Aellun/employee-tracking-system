@@ -158,7 +158,7 @@ const AdminHomePage = () => {
       Welcome to the Admin Dashboard
     </h2>
     <p className="text-lg text-gray-600 mb-6">
-      Here you can manage employees, projects, reports, tasks, and leaves. Use the navigation on the left to access different sections.
+      {/* Here you can manage employees, projects, reports, tasks, and leaves. Use the navigation on the left to access different sections. */}
     </p>
 
     {/* Numerical Data */}

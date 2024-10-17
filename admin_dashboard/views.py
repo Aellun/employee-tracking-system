@@ -1,10 +1,13 @@
 from rest_framework import generics
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny,IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
+from django.utils.dateparse import parse_datetime
 from rest_framework.response import Response
 from rest_framework import status
+from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Count
@@ -19,7 +22,8 @@ from .serializers import (
     TimeEntrySerializer, 
     LeaveRequestSerializer, 
     LeaveBalanceSerializer,
-    ClockInRecordSerializer
+    ClockInRecordSerializer,
+    UserSerializer
 )
 
 # --- List and create employees ---
@@ -328,3 +332,43 @@ class EmployeeDetailView(APIView):
         employee = self.get_object(employee_id)
         employee.delete()
         return Response({'message': 'Employee deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+    
+
+# List and Create Tasks
+class TaskListCreateView(generics.ListCreateAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+# Retrieve, Update, and Delete Task
+class TaskDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    lookup_field = 'id'
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+# Fetch Users for Task Assignment
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]    
+
+class TaskListView(generics.ListCreateAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Optionally, filter tasks by user if needed
+        # Example: return Task.objects.filter(assigned_to=self.request.user)
+        return super().get_queryset()
