@@ -15,7 +15,7 @@ import AdminTasksPage from './pages/AdminTasksPage';
 import LeaveRequestForm from './components/LeaveRequestForm';
 import LeavePage from './pages/LeavePage';
 import AdminDashboard from './components/AdminDashboard'; // New admin dashboard component
-import ManageUsers from './components/ManageUsers'; // Component for managing users
+import ManageEmployees from './components/ManageEmployees'; // Component for managing employees
 import ManageProjects from './components/ManageProjects'; // Component for managing projects
 import ManageTasks from './components/ManageTasks'; // Component for managing tasks
 import ManageLeaves from './components/ManageLeaves'; // Component for managing leave requests
@@ -57,7 +57,7 @@ function App() {
               <Route path="/admin/dashboard" element={token ? <AdminDashboard /> : <Navigate to="/" />} />
               
               {/* New Admin Management Routes */}
-              <Route path="/admin/manage-users" element={token ? <ManageUsers /> : <Navigate to="/" />} />
+              <Route path="/admin/manage-employees" element={token ? <ManageEmployees /> : <Navigate to="/" />} />
               <Route path="/admin/manage-projects" element={token ? <ManageProjects /> : <Navigate to="/" />} />
               <Route path="/admin/manage-tasks" element={token ? <ManageTasks /> : <Navigate to="/" />} />
               <Route path="/admin/manage-leaves" element={token ? <ManageLeaves /> : <Navigate to="/" />} />

@@ -1,5 +1,6 @@
 from rest_framework import generics
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny,IsAdminUser
 from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
 from rest_framework.response import Response
@@ -9,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Sum, Count
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
+from rest_framework.decorators import api_view, permission_classes
 from timesystem.models import Employee, Project, Task, LeaveBalance, TimeEntry, ClockInRecord, LeaveRequest
 from .serializers import (
     EmployeeSerializer, 
@@ -257,8 +259,8 @@ class LeaveRequestDetailView(APIView):
         except LeaveRequest.DoesNotExist:
             return None
 
-    def put(self, request, leaveId):
-        leave_request = self.get_object(leaveId)
+    def put(self, request, leave_id, *args, **kwargs):
+        leave_request = self.get_object(leave_id)
         if not leave_request:
             return Response({'error': 'Leave request not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -275,3 +277,54 @@ class LeaveRequestDetailView(APIView):
 
         leave_request.delete()
         return Response({'message': 'Leave request deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+    
+@permission_classes([IsAdminUser])
+class EmployeeListView(APIView):
+    
+    def get(self, request):
+        print(request.headers)
+        employees = Employee.objects.all()
+        serializer = EmployeeSerializer(employees, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        # Check if the user is an admin before allowing POST
+        if not request.user.is_staff:
+            return Response({'error': 'You do not have permission to create employees.'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = EmployeeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@permission_classes([IsAdminUser])
+class EmployeeDetailView(APIView):
+    def get_object(self, employee_id):
+        return get_object_or_404(Employee, id=employee_id)
+
+    def get(self, request, employee_id):
+        employee = self.get_object(employee_id)
+        serializer = EmployeeSerializer(employee)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, employee_id):
+        # Check if the user is an admin before allowing PUT
+        if not request.user.is_staff:
+            return Response({'error': 'You do not have permission to update employees.'}, status=status.HTTP_403_FORBIDDEN)
+
+        employee = self.get_object(employee_id)
+        serializer = EmployeeSerializer(employee, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, employee_id):
+        # Check if the user is an admin before allowing DELETE
+        if not request.user.is_staff:
+            return Response({'error': 'You do not have permission to delete employees.'}, status=status.HTTP_403_FORBIDDEN)
+
+        employee = self.get_object(employee_id)
+        employee.delete()
+        return Response({'message': 'Employee deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)

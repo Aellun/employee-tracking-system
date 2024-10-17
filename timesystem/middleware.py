@@ -3,7 +3,7 @@ import json
 from django.db import connection
 from django.utils.deprecation import MiddlewareMixin
 import traceback
-
+logger = logging.getLogger(__name__)
 class RequestResponseLoggingMiddleware(MiddlewareMixin):  
     def __init__(self, get_response):  
         self.get_response = get_response  
@@ -72,3 +72,35 @@ class RequestResponseLoggingMiddleware(MiddlewareMixin):
             "traceback": traceback.format_exc(),
         }
         self.logger.error("Exception occurred: " + json.dumps(error_log_entry))
+
+
+    def _update_leave_balance(self, instance):
+        """Deduct the appropriate leave days from the user's leave balance."""
+        leave_type = instance.leave_type
+        start_date = instance.start_date
+        end_date = instance.end_date
+        leave_days = (end_date - start_date).days + 1  # +1 to include end date
+
+        # Log the request details
+        logger.info(f"Updating leave balance for user: {instance.user.username} - Leave Type: {leave_type}, Leave Days: {leave_days}")
+
+        leave_balance, _ = LeaveBalance.objects.get_or_create(user=self.request.user)
+
+        logger.info(f"Current Leave Balance - Annual: {leave_balance.annual}, Sick: {leave_balance.sick}, Casual: {leave_balance.casual}, Maternity: {leave_balance.maternity}")
+
+        try:
+            if leave_type == 'annual':
+                self._deduct_leave(leave_balance, 'annual', leave_days)
+            elif leave_type == 'sick':
+                self._deduct_leave(leave_balance, 'sick', leave_days)
+            elif leave_type == 'casual':
+                self._deduct_leave(leave_balance, 'casual', leave_days)
+            elif leave_type == 'maternity':
+                self._deduct_leave(leave_balance, 'maternity', leave_days)
+            
+            leave_balance.save()
+            logger.info(f"Updated Leave Balance - Annual: {leave_balance.annual}, Sick: {leave_balance.sick}, Casual: {leave_balance.casual}, Maternity: {leave_balance.maternity}")
+
+        except ValidationError as e:
+            logger.error(f"Error updating leave balance for user {instance.user.username}: {e}")
+            raise

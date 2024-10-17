@@ -4,16 +4,16 @@ import { useAuth } from '../AuthProvider';
 import LeaveRequestForm from './LeaveRequestForm'; // Import the form for editing
 
 const LeaveHistory = () => {
-    const { token } = useAuth();
+    const { token, userId } = useAuth();  // Get userId from auth context
     const [leaveRequests, setLeaveRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [editingRequest, setEditingRequest] = useState(null); // For tracking the request being edited
 
-    // Define fetchLeaveRequests outside of useEffect so that it can be reused
+    // Fetch leave requests specific to the current user
     const fetchLeaveRequests = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/api/leave-requests/', {
+            const response = await axios.get(`http://localhost:8000/api/leave-requests/?user_id=${userId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ const LeaveHistory = () => {
 
     useEffect(() => {
         fetchLeaveRequests(); // Fetch data when the component mounts
-    }, [token]);
+    }, [token, userId]);  // Include userId in the dependency array
 
     const handleEditClick = (request) => {
         console.log('Editing request ID:', request?.id);

@@ -1,5 +1,6 @@
 from rest_framework import viewsets, response, status
 from django.utils import timezone
+from datetime import timedelta
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth import authenticate
@@ -19,6 +20,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.exceptions import ValidationError
+
 
 from .models import (
     Employee,
@@ -431,8 +433,6 @@ class TimesheetView(APIView):
         return "0m"  # Default if no time_out is available
 
 
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])  # Require authentication
 def check_active_clock_in(request):
@@ -455,52 +455,62 @@ def check_active_clock_in(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
-class LeaveRequestViewSet(viewsets.ModelViewSet):
-    queryset = LeaveRequest.objects.none()  # Empty queryset
-    serializer_class = LeaveRequestSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        # Only return leave requests for the authenticated user
-        return LeaveRequest.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        # Automatically associate the leave request with the authenticated user
-        serializer.save(user=self.request.user)
-
-    def perform_update(self, serializer):
-        # Only allow editing if the leave request is in DRAFT status
-        instance = self.get_object()
-        if instance.status != 'DRAFT':
-            raise ValidationError("You can only edit leave requests in DRAFT status.")
-        serializer.save()
-
-
 class LeaveBalanceView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """Retrieve the user's leave balance, calculating any approved leave deductions."""
         user = request.user
-        # Try to get leave balance, if it doesn't exist, create a default one
         leave_balance, created = LeaveBalance.objects.get_or_create(
             user=user,
             defaults={
-                'annual': 21, 
-                'sick': 14,
-                'casual': 7,
-                'maternity': 40
+                'annual': 21,  # Default for annual leave
+                'sick': 14,    # Default for sick leave
+                'casual': 7,   # Default for casual leave
+                'maternity': 40 # Default for maternity leave
             }
         )
+        
+        # Calculate and deduct approved leave days
+        self._deduct_approved_leave_days(user, leave_balance)
+
         serializer = LeaveBalanceSerializer(leave_balance)
         return Response(serializer.data)
-@receiver(post_save, sender=User)
-def create_leave_balance(sender, instance, created, **kwargs):
-    if created:
-        LeaveBalance.objects.create(
-            user=instance,
-            annual=21,
-            sick=14,
-            casual=7,
-            maternity=40
-        )
+
+    def _deduct_approved_leave_days(self, user, leave_balance):
+        """Calculate and deduct days for all 'APPROVED' leave requests."""
+        # Get all approved leave requests for this user
+        approved_leaves = LeaveRequest.objects.filter(user=user, status='APPROVED')
+        
+        # Initialize counters for each leave type
+        annual_days = 0
+        sick_days = 0
+        casual_days = 0
+        maternity_days = 0
+
+        # Calculate the total number of approved leave days for each type
+        for leave in approved_leaves:
+            start_date = leave.start_date
+            end_date = leave.end_date
+            leave_days = (end_date - start_date).days + 1  # Include end date
+            
+            if leave.leave_type == 'ANNUAL':
+                annual_days += leave_days
+            elif leave.leave_type == 'SICK':
+                sick_days += leave_days
+            elif leave.leave_type == 'CASUAL':
+                casual_days += leave_days
+            elif leave.leave_type == 'MATERNITY':
+                maternity_days += leave_days
+
+        # Deduct approved leave days from the balance based on defaults
+        leave_balance.annual = max(21 - annual_days, 0)  # Default 21 days for annual
+        leave_balance.sick = max(14 - sick_days, 0)      # Default 14 days for sick
+        leave_balance.casual = max(7 - casual_days, 0)   # Default 7 days for casual
+        leave_balance.maternity = max(40 - maternity_days, 0)  # Default 40 days for maternity
+
+        # Save the updated leave balance
+        leave_balance.save()
+
+        # Debugging output
+        print(f"Updated Leave Balances - Annual: {leave_balance.annual}, Sick: {leave_balance.sick}, Casual: {leave_balance.casual}, Maternity: {leave_balance.maternity}")
