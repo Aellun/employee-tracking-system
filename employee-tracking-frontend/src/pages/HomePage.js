@@ -54,7 +54,7 @@ const HomePage = () => {
     <div className="flex min-h-screen flex-col bg-gray-100">
       {/* Navbar */}
       <nav className="navbar flex justify-between items-center px-6 py-4 bg-blue-600 text-white">
-        <h1 className="text-xl font-bold">Employee Tracking System</h1>
+        <h1 className="text-xl font-bold">EmplyTech System</h1>
         <div className="flex items-center">
           <span className="mr-4">{username.toUpperCase()}</span>
           <FaUser className="text-white mr-2" />
