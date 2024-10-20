@@ -25,7 +25,9 @@ from .serializers import (
     ClockInRecordSerializer,
     UserSerializer
 )
+import logging
 
+logger = logging.getLogger(__name__)
 # --- List and create employees ---
 class EmployeeListCreateView(generics.ListCreateAPIView):
     queryset = Employee.objects.all()
@@ -332,7 +334,7 @@ class EmployeeDetailView(APIView):
         employee = self.get_object(employee_id)
         employee.delete()
         return Response({'message': 'Employee deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
-    
+  
 
 # List and Create Tasks
 class TaskListCreateView(generics.ListCreateAPIView):
@@ -350,12 +352,24 @@ class TaskDetailView(RetrieveUpdateDestroyAPIView):
     lookup_field = 'id'
 
     def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.pop('partial', False)  # Allow partial updates (PATCH)
         instance = self.get_object()
+        logger.info(f"Updating Task: {instance.id}")
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
+    
+
+def delete(self, request, *args, **kwargs):
+    instance = self.get_object()
+    logger.info(f"Deleting Task: {instance.id}")
+    self.perform_destroy(instance)
+    
+    # Ensure the Content-Type header is set
+    response = Response(status=204)
+    response['Content-Type'] = 'application/json'
+    return Response(status=204)
 
 # Fetch Users for Task Assignment
 class UserListView(generics.ListAPIView):
@@ -369,6 +383,6 @@ class TaskListView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Optionally, filter tasks by user if needed
-        # Example: return Task.objects.filter(assigned_to=self.request.user)
+        #return Task.objects.filter(assigned_to=self.request.user)
         return super().get_queryset()
+    

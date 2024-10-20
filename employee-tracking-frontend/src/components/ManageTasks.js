@@ -1,152 +1,233 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '../AuthProvider'; // Import the authentication context
-import TaskModal from './TaskModal'; // Import the modal component
-import Toast from './Toast'; // Import the toast component
+import { useAuth } from '../AuthProvider';
+import TaskModal from './TaskModal';
+import Toast from './Toast';
+import { format } from 'date-fns';
 
 const ManageTasks = () => {
-  const { token } = useAuth(); // Get the auth token from context
-  const [tasks, setTasks] = useState([]); // State to hold the list of tasks
-  const [users, setUsers] = useState([]); // State to hold the list of users for assigning tasks
-  const [error, setError] = useState(null); // State to handle errors
-  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
-  const [currentTask, setCurrentTask] = useState(null); // State to hold the task being edited or created
-  const [toastMessage, setToastMessage] = useState(''); // State for toast messages
-  const [showToast, setShowToast] = useState(false); // State to control toast visibility
+  const { token } = useAuth();
+  const [tasks, setTasks] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentTask, setCurrentTask] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterAssignedTo, setFilterAssignedTo] = useState('');
+  const [filterDueDate, setFilterDueDate] = useState('');
+  const [taskLimit, setTaskLimit] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch tasks and users when component mounts
-  // Fetch tasks and users when component mounts
-useEffect(() => {
-  const fetchTasksAndUsers = async () => {
+  useEffect(() => {
+    const fetchTasksAndUsers = async () => {
+      try {
+        const tasksResponse = await axios.get('http://localhost:8000/admin-dashboard/api/tasks/', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTasks(tasksResponse.data);
+
+        const usersResponse = await axios.get('http://localhost:8000/admin-dashboard/api/employees/', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUsers(usersResponse.data);
+      } catch (err) {
+        setError('Error fetching tasks or users.');
+      }
+    };
+
+    fetchTasksAndUsers();
+  }, [token]);
+
+  // Open task modal for editing or creating
+  const handleOpenModal = (task = null) => {
+    setCurrentTask(task);
+    setIsModalOpen(true);
+    // console.log("Current Task:", currentTask);
+  };
+
+  const handleEditTask = (task) => {
+    setCurrentTask(task);
+    console.log("Current Task:", currentTask);
+    console.log("Editing task:", task);
+    setIsModalOpen(true); // To open the modal
+  };
+  // Close task modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setCurrentTask(null);
+  };
+
+  // Submit task changes (edit/create)
+  const handleTaskSubmit = async (taskData) => {
     try {
-      const tasksResponse = await axios.get('http://localhost:8000/admin-dashboard/api/tasks/', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTasks(tasksResponse.data);
-
-      const usersResponse = await axios.get('http://localhost:8000/admin-dashboard/api/employees/', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUsers(usersResponse.data);
+      let response;
+      if (currentTask) {
+        // Update task
+        response = await axios.put(
+          `http://localhost:8000/admin-dashboard/api/tasks/${currentTask.id}/`,
+          taskData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setTasks((prevTasks) =>
+          prevTasks.map((task) => (task.id === currentTask.id ? response.data : task))
+        );
+        setToastMessage('Task updated successfully!');
+      } else {
+        // Create new task
+        response = await axios.post(
+          'http://localhost:8000/admin-dashboard/api/tasks/',
+          taskData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setTasks((prevTasks) => [...prevTasks, response.data]);
+        setToastMessage('Task created successfully!');
+      }
+      setShowToast(true);
+      handleCloseModal(); // Close modal after submit
     } catch (err) {
-      setError('Error fetching tasks or users.');
+      setError('Error creating or updating task.');
     }
   };
 
-  fetchTasksAndUsers();
-}, [token]);
-
-const handleOpenModal = (task = null) => {
-  setCurrentTask(task);
-  setIsModalOpen(true);
-};
-
-const handleCloseModal = () => {
-  setIsModalOpen(false);
-  setCurrentTask(null); // Clear the current task when modal closes
-};
-
-const handleTaskSubmit = async (taskData) => {
-  try {
-    if (currentTask) {
-      // Update existing task
-      const response = await axios.put(
-        `http://localhost:8000/admin-dashboard/api/tasks/${currentTask.id}/`,
-        taskData,
+  // Update task status
+  const handleUpdateTaskStatus = async (taskId, status) => {
+    try {
+      const response = await axios.patch(
+        `http://localhost:8000/admin-dashboard/api/tasks/${taskId}/`,
+        { status },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setTasks((prevTasks) =>
-        prevTasks.map((task) => (task.id === currentTask.id ? response.data : task))
+        prevTasks.map((task) =>
+          task.id === taskId ? { ...task, status: response.data.status } : task
+        )
       );
-      setToastMessage('Task updated successfully!');
-    } else {
-      // Create new task
-      const response = await axios.post(
-        'http://localhost:8000/admin-dashboard/api/tasks/',
-        taskData,
+      setToastMessage('Task status updated successfully!');
+      setShowToast(true);
+    } catch (err) {
+      setError('Error updating task status.');
+    }
+  };
+
+  // Assign or change task assignee
+  const handleAssignTask = async (taskId, userId) => {
+    try {
+      const response = await axios.patch(
+        `http://localhost:8000/admin-dashboard/api/tasks/${taskId}/`,
+        { assigned_to: userId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setTasks((prevTasks) => [...prevTasks, response.data]);
-      setToastMessage('Task created successfully!');
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === taskId ? { ...task, assigned_to: response.data.assigned_to } : task
+        )
+      );
+      setToastMessage('Task assigned successfully!');
+      setShowToast(true);
+    } catch (err) {
+      setError('Error assigning task.');
     }
-    setShowToast(true);
-  } catch (err) {
-    setError('Error creating or updating task.');
-  }
-};
+  };
 
-// Update task status
-const handleUpdateTaskStatus = async (taskId, status) => {
-  try {
-    const response = await axios.put(
-      `http://localhost:8000/admin-dashboard/api/tasks/${taskId}/`,
-      { status },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId ? { ...task, status: response.data.status } : task
-      )
-    );
-    setToastMessage('Task status updated successfully!');
-    setShowToast(true);
-  } catch (err) {
-    setError('Error updating task status.');
-  }
-};
+  // Delete a task
+  const handleDeleteTask = async (taskId) => {
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      try {
+        await axios.delete(`http://localhost:8000/admin-dashboard/api/tasks/${taskId}/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+        setToastMessage('Task deleted successfully!');
+        setShowToast(true);
+      } catch (err) {
+        setError('Error deleting task.');
+      }
+    }
+  };
 
-// Assign or change task assignee
-const handleAssignTask = async (taskId, userId) => {
-  try {
-    const response = await axios.put(
-      `http://localhost:8000/admin-dashboard/api/tasks/${taskId}/`,
-      { assigned_to: userId },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId ? { ...task, assigned_to: response.data.assigned_to } : task
-      )
-    );
-    setToastMessage('Task assigned successfully!');
-    setShowToast(true);
-  } catch (err) {
-    setError('Error assigning task.');
-  }
-};
+  // Pagination and task filtering
+  const handleNextPage = () => setCurrentPage((prevPage) => prevPage + 1);
+  const handlePreviousPage = () => setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
 
-// Delete a task
-const handleDeleteTask = async (taskId) => {
-  try {
-    await axios.delete(`http://localhost:8000/admin-dashboard/api/tasks/${taskId}/`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
-    setToastMessage('Task deleted successfully!');
-    setShowToast(true);
-  } catch (err) {
-    setError('Error deleting task.');
-  }
-};
+  const filteredTasks = tasks
+    .filter((task) => {
+      return (
+        (filterStatus === '' || task.status === filterStatus) &&
+        (filterAssignedTo === '' || task.assigned_to === filterAssignedTo) &&
+        (filterDueDate === '' || format(new Date(task.due_date), 'yyyy-MM-dd') === filterDueDate)
+      );
+    })
+    .slice((currentPage - 1) * taskLimit, currentPage * taskLimit);
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">Manage Tasks</h2>
-      <button 
-        onClick={() => handleOpenModal()}
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-4 hover:bg-blue-600 transition"
+
+      {/* Add Task Button */}
+      <button
+        onClick={() => handleOpenModal()} // Open modal for new task
+        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
       >
         Add Task
       </button>
 
-      {/* Display error message */}
-      {error && <p className="text-red-600 mb-4">{error}</p>}
+      {/* Task Filters */}
+      <div className="mb-4 flex space-x-4">
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="border border-gray-300 p-2 rounded"
+        >
+          <option value="">Filter by Status</option>
+          <option value="pending">Pending</option>
+          <option value="awaiting_approval">Awaiting Approval</option>
+          <option value="extension_approved">Extension Approved</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
 
-      {/* Display tasks in a table */}
+        <select
+          value={filterAssignedTo}
+          onChange={(e) => setFilterAssignedTo(e.target.value)}
+          className="border border-gray-300 p-2 rounded"
+        >
+          <option value="">Filter by Assignee</option>
+          {users.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.username}
+            </option>
+          ))}
+        </select>
+
+        <input
+          type="date"
+          value={filterDueDate}
+          onChange={(e) => setFilterDueDate(e.target.value)}
+          className="border border-gray-300 p-2 rounded"
+        />
+
+        <select
+          value={taskLimit}
+          onChange={(e) => setTaskLimit(Number(e.target.value))}
+          className="border border-gray-300 p-2 rounded"
+        >
+          <option value={10}>Show 10 tasks</option>
+          <option value={50}>Show 50 tasks</option>
+          <option value={100}>Show 100 tasks</option>
+          <option value={400}>Show 400 tasks</option>
+          <option value={500}>Show 500 tasks</option>
+        </select>
+      </div>
+
+      {/* Task Table */}
       <div className="overflow-x-auto bg-white shadow-md rounded-lg">
         <table className="min-w-full">
           <thead className="bg-gray-200">
             <tr>
+              <th className="px-4 py-2 text-left">#</th>
               <th className="px-4 py-2 text-left">Task Name</th>
               <th className="px-4 py-2 text-left">Description</th>
               <th className="px-4 py-2 text-left">Due Date</th>
@@ -156,31 +237,32 @@ const handleDeleteTask = async (taskId) => {
             </tr>
           </thead>
           <tbody>
-            {tasks.map((task) => (
+            {filteredTasks.map((task, index) => (
               <tr key={task.id} className="border-b hover:bg-gray-100">
+                <td className="px-4 py-2">{(currentPage - 1) * taskLimit + index + 1}</td>
                 <td className="px-4 py-2">{task.name}</td>
                 <td className="px-4 py-2">{task.description}</td>
-                <td className="px-4 py-2">{task.due_date}</td>
+                <td className="px-4 py-2">{format(new Date(task.due_date), 'MMM dd, yyyy')}</td>
                 <td className="px-4 py-2">
                   <select
                     value={task.status}
                     onChange={(e) => handleUpdateTaskStatus(task.id, e.target.value)}
-                    className="border border-gray-300 rounded p-1"
+                    className="border border-gray-300 p-2 rounded"
                   >
                     <option value="pending">Pending</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="completed">Completed</option>
                     <option value="awaiting_approval">Awaiting Approval</option>
                     <option value="extension_approved">Extension Approved</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
                   </select>
                 </td>
                 <td className="px-4 py-2">
                   <select
-                    value={task.assigned_to || ''} // Handling unassigned tasks
+                    value={task.assigned_to}
                     onChange={(e) => handleAssignTask(task.id, e.target.value)}
-                    className="border border-gray-300 rounded p-1"
+                    className="border border-gray-300 p-2 rounded"
                   >
-                    <option value="">Select User</option>
+                    <option value="">Select Assignee</option>
                     {users.map((user) => (
                       <option key={user.id} value={user.id}>
                         {user.username}
@@ -188,16 +270,16 @@ const handleDeleteTask = async (taskId) => {
                     ))}
                   </select>
                 </td>
-                <td className="px-4 py-2 flex space-x-3">
-                  <button 
-                    onClick={() => handleOpenModal(task)} 
-                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition"
+                <td className="px-4 py-2 flex space-x-2">
+                  <button
+                    onClick={() => handleOpenModal(task)}
+                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
                   >
                     Edit
                   </button>
-                  <button 
-                    onClick={() => handleDeleteTask(task.id)} 
-                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+                  <button
+                    onClick={() => handleDeleteTask(task.id)}
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
                   >
                     Delete
                   </button>
@@ -208,17 +290,28 @@ const handleDeleteTask = async (taskId) => {
         </table>
       </div>
 
+      {/* Pagination Controls */}
+      <div className="flex justify-between mt-4">
+        <button onClick={handlePreviousPage} disabled={currentPage === 1} className="bg-gray-300 px-4 py-2 rounded">
+          Previous
+        </button>
+        <button onClick={handleNextPage} className="bg-gray-300 px-4 py-2 rounded">
+          Next
+        </button>
+      </div>
+
       {/* Task Modal */}
       <TaskModal
         isOpen={isModalOpen}
+        onedit={handleEditTask}
         onClose={handleCloseModal}
         onSubmit={handleTaskSubmit}
-        task={currentTask}
-        users={users} // Pass users for assigning in the modal
+        currentTask={currentTask}
+        users={users}
       />
 
       {/* Toast Notification */}
-      <Toast message={toastMessage} isOpen={showToast} onClose={() => setShowToast(false)} />
+      {showToast && <Toast message={toastMessage} onClose={() => setShowToast(false)} />}
     </div>
   );
 };

@@ -1,6 +1,9 @@
 from django.urls import path
 from . import views
-from .views import AdminStatisticsView, LeaveRequestListView, LeaveRequestDetailView, EmployeeListView, EmployeeDetailView, TaskDetailView, TaskListView
+from .views import (
+    AdminStatisticsView, LeaveRequestListView, LeaveRequestDetailView, 
+    EmployeeListView, EmployeeDetailView, TaskDetailView, TaskListView
+)
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -10,7 +13,6 @@ urlpatterns = [
 
     # Task URLs
     path('api/tasks/<int:id>/', TaskDetailView.as_view(), name='task-detail'),
-
     path('api/tasks/', TaskListView.as_view(), name='task-list'),
 
     # Project URLs

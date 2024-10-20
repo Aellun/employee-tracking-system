@@ -8,10 +8,11 @@ const TaskModal = ({ isOpen, onClose, onSubmit, task, users }) => {
   const [assignedTo, setAssignedTo] = useState('');
 
   useEffect(() => {
+    console.log("Task prop received:", task);
     if (task) {
       setName(task.name);
       setDescription(task.description);
-      setDueDate(task.due_date);
+      setDueDate(task.due_date.split('T')[0]); // Assuming due_date is in ISO format
       setStatus(task.status);
       setAssignedTo(task.assigned_to);
     } else {
@@ -72,6 +73,7 @@ const TaskModal = ({ isOpen, onClose, onSubmit, task, users }) => {
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
+              min={new Date().toISOString().split('T')[0]} // Set minimum date to today
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
             />

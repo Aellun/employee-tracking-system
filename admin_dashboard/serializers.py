@@ -73,3 +73,19 @@ class LeaveBalanceSerializer(serializers.ModelSerializer):
     class Meta:  
         model = LeaveBalance  
         fields = '__all__'  # Removed the trailing comma
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = ['id', 'name', 'description', 'due_date', 'status', 'assigned_to']
+
+    # Optional custom update logic for partial updates
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get('description', instance.description)
+        instance.due_date = validated_data.get('due_date', instance.due_date)
+        instance.status = validated_data.get('status', instance.status)
+        instance.assigned_to = validated_data.get('assigned_to', instance.assigned_to)
+        instance.save()
+        return instance
