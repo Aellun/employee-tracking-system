@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../AuthProvider';
 import TaskModal from './TaskModal';
+import DeleteTaskModal from './DeleteTaskModal';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Toast from './Toast';
 import { format } from 'date-fns';
 
@@ -128,19 +131,31 @@ const ManageTasks = () => {
     }
   };
 
-  // Delete a task
-  const handleDeleteTask = async (taskId) => {
+ // Delete task after confirmation
+ const handleDeleteTask = async (taskId) => {
+  // Show confirmation dialog
+  const confirmed = window.confirm(`Are you sure you want to delete the task: ${taskId}?`);
+
+  if (confirmed) {
     try {
       await axios.delete(`http://localhost:8000/admin-dashboard/api/tasks/${taskId}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
-      setToastMessage('Task deleted successfully!');
+      // Remove the task from the state after successful deletion
+      setTasks((prevTasks) => prevTasks.filter((t) => t.id !== taskId));
+      setToastMessage(`Task "${taskId}" deleted successfully!`);
       setShowToast(true);
+
+      // Hide the toast after 3 seconds
+      setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+
     } catch (err) {
       setError('Error deleting task.');
     }
-  };
+  }
+};
 
   // Pagination and task filtering
   const handleNextPage = () => setCurrentPage((prevPage) => prevPage + 1);
@@ -302,6 +317,8 @@ const ManageTasks = () => {
         currentTask={currentTask}
         users={users}
       />
+
+      
 
       {/* Toast Notification */}
       {showToast && <Toast message={toastMessage} onClose={() => setShowToast(false)} />}
