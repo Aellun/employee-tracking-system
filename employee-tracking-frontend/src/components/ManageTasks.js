@@ -20,6 +20,7 @@ const ManageTasks = () => {
   const [taskLimit, setTaskLimit] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
+  
   // Fetch tasks and users when component mounts
   useEffect(() => {
     const fetchTasksAndUsers = async () => {
@@ -43,30 +44,26 @@ const ManageTasks = () => {
 
   // Open task modal for editing or creating
   const handleOpenModal = (task = null) => {
+    if (task) {
+      console.log('Editing task:', task); // Log the task being edited
+    } else {
+      console.log('Creating a new task'); // Log when creating a new task
+    }
     setCurrentTask(task);
     setIsModalOpen(true);
-    // console.log("Current Task:", currentTask);
   };
 
-  const handleEditTask = (task) => {
-    setCurrentTask(task);
-    console.log("Current Task:", currentTask);
-    console.log("Editing task:", task);
-    setIsModalOpen(true); // To open the modal
-  };
-  // Close task modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setCurrentTask(null);
+    setCurrentTask(null); // Clear the current task when modal closes
   };
 
   // Submit task changes (edit/create)
   const handleTaskSubmit = async (taskData) => {
     try {
-      let response;
       if (currentTask) {
         // Update task
-        response = await axios.put(
+        const response = await axios.put(
           `http://localhost:8000/admin-dashboard/api/tasks/${currentTask.id}/`,
           taskData,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -77,7 +74,7 @@ const ManageTasks = () => {
         setToastMessage('Task updated successfully!');
       } else {
         // Create new task
-        response = await axios.post(
+        const response = await axios.post(
           'http://localhost:8000/admin-dashboard/api/tasks/',
           taskData,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -86,7 +83,6 @@ const ManageTasks = () => {
         setToastMessage('Task created successfully!');
       }
       setShowToast(true);
-      handleCloseModal(); // Close modal after submit
     } catch (err) {
       setError('Error creating or updating task.');
     }
@@ -134,17 +130,15 @@ const ManageTasks = () => {
 
   // Delete a task
   const handleDeleteTask = async (taskId) => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      try {
-        await axios.delete(`http://localhost:8000/admin-dashboard/api/tasks/${taskId}/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
-        setToastMessage('Task deleted successfully!');
-        setShowToast(true);
-      } catch (err) {
-        setError('Error deleting task.');
-      }
+    try {
+      await axios.delete(`http://localhost:8000/admin-dashboard/api/tasks/${taskId}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+      setToastMessage('Task deleted successfully!');
+      setShowToast(true);
+    } catch (err) {
+      setError('Error deleting task.');
     }
   };
 
@@ -303,7 +297,6 @@ const ManageTasks = () => {
       {/* Task Modal */}
       <TaskModal
         isOpen={isModalOpen}
-        onedit={handleEditTask}
         onClose={handleCloseModal}
         onSubmit={handleTaskSubmit}
         currentTask={currentTask}

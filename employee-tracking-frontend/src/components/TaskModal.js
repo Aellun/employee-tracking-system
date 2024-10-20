@@ -1,105 +1,118 @@
 import React, { useState, useEffect } from 'react';
+import '../css/modal.css'; // Import the custom CSS
 
-const TaskModal = ({ isOpen, onClose, onSubmit, task, users }) => {
+const TaskModal = ({ isOpen, onClose, onSubmit, currentTask, users }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [status, setStatus] = useState('pending');
+  const [status, setStatus] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
 
+  const today = new Date().toISOString().split('T')[0];
+
+  // Populate the form fields when editing a task
   useEffect(() => {
-    console.log("Task prop received:", task);
-    if (task) {
-      setName(task.name);
-      setDescription(task.description);
-      setDueDate(task.due_date.split('T')[0]); // Assuming due_date is in ISO format
-      setStatus(task.status);
-      setAssignedTo(task.assigned_to);
-    } else {
-      setName('');
-      setDescription('');
-      setDueDate('');
-      setStatus('pending');
-      setAssignedTo('');
+    if (currentTask) {
+      setName(currentTask.name);
+      setDescription(currentTask.description);
+      setDueDate(currentTask.due_date ? currentTask.due_date.split('T')[0] : '');
+      setStatus(currentTask.status);
+      setAssignedTo(currentTask.assigned_to);
     }
-  }, [task]);
+  }, [currentTask]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ name, description, due_date: dueDate, status, assigned_to: assignedTo });
+    const taskData = { name, description, due_date: dueDate, status, assigned_to: assignedTo };
+    onSubmit(taskData);
+    
+    // Clear the form data after submission
+    setName('');
+    setDescription('');
+    setDueDate('');
+    setStatus('');
+    setAssignedTo('');
     onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white w-full max-w-lg p-6 rounded-lg shadow-lg">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">
-            {task ? 'Edit Task' : 'Create Task'}
-          </h2>
-          <button
-            className="text-gray-400 hover:text-gray-600 transition"
-            onClick={onClose}
-          >
-            &times;
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Task Name</label>
+    <>
+      {/* Modal Overlay */}
+      <div className={`modal-overlay ${isOpen ? 'active' : ''}`}></div>
+
+      {/* Modal Content */}
+      <div className={`modal-container ${isOpen ? 'active' : ''}`}>
+        <button className="modal-close-button" onClick={onClose}>
+          &times;
+        </button>
+
+        <h2 className="text-center text-xl font-semibold text-gray-800 mb-4">
+          {currentTask ? 'Edit Task' : 'Add Task'}
+        </h2>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-lg font-bold text-gray-700">Task Name</label>
             <input
               type="text"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
-            <textarea
+
+          <div className="mb-4">
+            <label className="block text-lg font-bold text-gray-700">Description</label>
+            <input
+              type="text"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              rows="4"
-              required
-            ></textarea>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Due Date</label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              min={new Date().toISOString().split('T')[0]} // Set minimum date to today
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Status</label>
+
+          <div className="mb-4">
+            <label className="block text-lg font-bold text-gray-700">Due Date</label>
+            <input
+              type="date"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              value={dueDate}
+              min={today}
+              onChange={(e) => setDueDate(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-lg font-bold text-gray-700">Status</label>
             <select
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
             >
               <option value="pending">Pending</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
               <option value="awaiting_approval">Awaiting Approval</option>
               <option value="extension_approved">Extension Approved</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Assigned To</label>
+
+          <div className="mb-4">
+            <label className="block text-lg font-bold text-gray-700">Assigned To</label>
             <select
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500"
               value={assignedTo}
               onChange={(e) => setAssignedTo(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              required
             >
-              <option value="">Select User</option>
+              <option value="">Select Assignee</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.username}
@@ -107,24 +120,25 @@ const TaskModal = ({ isOpen, onClose, onSubmit, task, users }) => {
               ))}
             </select>
           </div>
-          <div className="flex justify-end">
+
+          <div className="flex justify-center mt-4">
             <button
               type="button"
+              className="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 mr-4"
               onClick={onClose}
-              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md mr-2 hover:bg-gray-300 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              {task ? 'Update Task' : 'Create Task'}
+              {currentTask ? 'Update Task' : 'Create Task'}
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </>
   );
 };
 
