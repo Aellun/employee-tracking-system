@@ -1,99 +1,139 @@
-/* TimesheetPage.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-.timesheet-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f9f9ff;
-  border-radius: 8px;
+/* General Styles */
+body {
+  font-family: Arial, sans-serif;
 }
 
-.page-title {
-  color: #0056b3;
-  text-align: center;
-  font-size: 2rem;
-  margin-bottom: 20px;
-}
-
-.filter-container {
+/* Container */
+.flex {
   display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
 }
 
-.filter-form {
-  display: flex;
-  gap: 10px;
+.flex-col {
+  flex-direction: column;
 }
 
-.date-picker {
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid #007bff;
+/* Page Background */
+.bg-gray-100 {
+  background-color: #f5f7fa; /* Light gray for the page background */
 }
 
-.filter-button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.bg-white {
+  background-color: #ffffff; /* White background for cards */
 }
 
-.filter-button:hover {
-  background-color: #0056b3;
+/* Heading */
+h1 {
+  color: #191C24; /* Primary color for headings */
 }
 
-.date-section {
-  margin-bottom: 20px;
+/* Error Message */
+.bg-red-100 {
+  background-color: #FFEBE8; /* Light red for error background */
 }
 
-.date-header {
-  font-size: 1.5rem;
-  color: #003366;
-  cursor: pointer;
-  padding: 10px;
-  background-color: #e6f0ff;
-  border-radius: 4px;
+.text-red-700 {
+  color: #C62828; /* Dark red for error text */
 }
 
-.entry-table {
+/* Form Styles */
+input[type="date"] {
+  border: 1px solid #BDC3C7; /* Light gray border */
+}
+
+input[type="date"]:focus {
+  border-color: #AF1763; /* Pink border on focus */
+  outline: none;
+  box-shadow: 0 0 5px rgba(175, 23, 99, 0.5); /* Glow effect */
+}
+
+button {
+  background-color: #0dcaf0; /* Supporting color for button */
+  color: white; /* White text */
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #198754; /* Change on hover to green */
+}
+
+/* Card Styles */
+.rounded-lg {
+  border-radius: 0.5rem; /* Rounded corners for cards */
+}
+
+.shadow-md {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow for cards */
+}
+
+/* Table Styles */
+table {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
+  border-collapse: collapse; /* Remove space between table cells */
 }
 
-.entry-table th, .entry-table td {
-  padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #ccc;
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #BDC3C7; /* Light gray border for table rows */
 }
 
-.entry-table th {
-  background-color: #e6f0ff;
-  color: #003366;
+th {
+  background-color: #0dcaf0; /* Background color for table header */
+  color: white; /* White text for header */
 }
 
-.error-message {
-  color: red;
-  text-align: center;
-  margin-bottom: 10px;
+/* Expanded Row Styles */
+.bg-gray-50 {
+  background-color: #F7F9FA; /* Light gray for expanded rows */
 }
 
-.no-entries {
-  text-align: center;
-  color: #555;
+.text-gray-600 {
+  color: #7E7D7D; /* Darker gray for text in expanded rows */
 }
 
-/* Styling for break rows */
-.break-row {
-  font-weight: bold;
-  color: #ff9900; /* Light orange font color */
-  padding-left: 30%; /* Indent the break rows */
-  background-color: #fef6e4; /* Soft background color for breaks */
+/* Chevron Icons */
+.cursor-pointer {
+  cursor: pointer; /* Pointer cursor for clickable items */
+}
+
+/* General Text Colors */
+.text-gray-800 {
+  color: #191C24; /* Dark primary color for text */
+}
+
+.text-gray-500 {
+  color: #A6A8AB; /* Lighter gray for secondary text */
+}
+
+.text-lg {
+  font-size: 1.125rem; /* Larger font size for text */
+}
+/* Unique Background Colors for Break Types */
+.break-entry.bg-red-500 {
+  background-color: #f09151; /* Example color for first break type */
+}
+
+.break-entry.bg-blue-500 {
+  background-color: #0dcaf0; /* Example color for second break type */
+}
+
+.break-entry.bg-green-500 {
+  background-color: #198754; /* Example color for third break type */
+}
+
+.break-entry.bg-yellow-500 {
+  background-color: #FFC107; /* Example color for fourth break type */
+}
+
+.break-entry.bg-purple-500 {
+  background-color: #AB2E3C; /* Example color for fifth break type */
+}
+
+/* Indentation for Break Entries */
+.pl-8 {
+  padding-left: 2rem; /* Indentation for break entries */
+}
+
+/* Optional: Add a subtle hover effect for breaks */
+.break-entry:hover {
+  opacity: 0.9; /* Slightly fade on hover */
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../AuthProvider';
 import { FaCalendarAlt, FaChevronDown, FaChevronUp, FaClock, FaExclamationCircle } from 'react-icons/fa';
-
+import '../css/TimesheetPage.css';
 const TimesheetPage = () => {
   const [timeEntries, setTimeEntries] = useState([]);
   const { token } = useAuth();
@@ -119,8 +119,8 @@ const TimesheetPage = () => {
                         <td className="py-2 px-4">{entry.notes || 'N/A'}</td>
                       </tr>
 
-                      {entry.breaks && entry.breaks.map((breakEntry) => (
-                        <tr key={breakEntry.id} className="bg-gray-50 text-gray-600">
+                      {entry.breaks && entry.breaks.map((breakEntry, index) => (
+                        <tr key={breakEntry.id} className={`bg-break-color break-entry ${getBreakClass(index)}`}>
                           <td className="py-2 px-4 pl-8">
                             {parseDate(breakEntry.time_started)?.toLocaleTimeString() || 'Invalid Time'} -{' '}
                             {breakEntry.time_ended ? parseDate(breakEntry.time_ended)?.toLocaleTimeString() : 'Ongoing'}
@@ -140,6 +140,12 @@ const TimesheetPage = () => {
       )}
     </div>
   );
+};
+
+// Helper function to get unique classes for breaks
+const getBreakClass = (index) => {
+  const breakColors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500'];
+  return breakColors[index % breakColors.length];
 };
 
 const formatDuration = (start, end) => {

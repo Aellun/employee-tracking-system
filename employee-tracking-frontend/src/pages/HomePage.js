@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthProvider';
 import axios from 'axios';
 import { FaTasks, FaRegClock, FaUser, FaSignOutAlt, FaClipboardList } from 'react-icons/fa';
-import '../css/HomePage.css';  // Import the custom CSS
+import '../css/HomePage.css';
 
 const HomePage = () => {
   const { logout, token } = useAuth();
