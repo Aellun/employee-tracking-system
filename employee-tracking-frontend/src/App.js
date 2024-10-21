@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';  
 import { AuthProvider, useAuth } from './AuthProvider'; // Import the AuthProvider
 import Login from './components/Login';  
-import TasksPage from './pages/TasksPage';  
-import TimeTrackerPage from './pages/TimeTrackerPage';  
+import TasksPage from './pages/TasksPage';    
 import TimesheetPage from './pages/TimesheetPage';  
 import EmployeesPage from './pages/EmployeesPage';  
 import ProjectsPage from './pages/ProjectsPage';  
@@ -12,7 +11,6 @@ import HomePage from './pages/HomePage'; // Home page for employees
 import AdminHomePage from './pages/AdminHomePage'; // Admin home page
 import TimeClock from './components/TimeClock';
 import AdminTasksPage from './pages/AdminTasksPage';
-import LeaveRequestForm from './components/LeaveRequestForm';
 import LeavePage from './pages/LeavePage';
 import AdminDashboard from './components/AdminDashboard'; // New admin dashboard component
 import ManageEmployees from './components/ManageEmployees'; // Component for managing employees

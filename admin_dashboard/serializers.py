@@ -4,17 +4,28 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model  
 from timesystem.models import Employee, Project, Task, TimeEntry, ClockInRecord, JobRecord, BreakRecord, LeaveRequest, LeaveBalance  
 
-User = get_user_model()  # Use the dynamic user model  
+User = get_user_model()  
 
 class UserSerializer(serializers.ModelSerializer):  
     class Meta:  
         model = User  
-        fields = ['id', 'username']  
+        fields = ['id', 'first_name', 'last_name', 'email', 'date_joined' ]  
 
-class EmployeeSerializer(serializers.ModelSerializer):  
-    class Meta:  
-        model = Employee  
-        fields = '__all__'  
+class EmployeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Employee
+        fields = '__all__'
+
+    def validate_email(self, value):
+        # Check if the employee already exists and has a different ID
+        if self.instance:
+            if Employee.objects.exclude(id=self.instance.id).filter(email=value).exists():
+                raise serializers.ValidationError("User email already exists.")
+        else:
+            # This is for the creation case where self.instance is None
+            if Employee.objects.filter(email=value).exists():
+                raise serializers.ValidationError("User email already exists.")
+        return value
 
 class ProjectSerializer(serializers.ModelSerializer):  
     class Meta:  

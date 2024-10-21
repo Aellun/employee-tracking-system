@@ -9,7 +9,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 urlpatterns = [
     # Employee URLs
     path('api/employees/', views.UserListView.as_view(), name='user-list'),
-    path('api/employees/<int:employee_id>/', EmployeeDetailView.as_view(), name='employee-detail'),
+    path('api/employees/data/<int:employee_id>/', EmployeeDetailView.as_view(), name='employee-detail'),
+    path('api/employees/data/', EmployeeListView.as_view(), name='employee-list'),
 
     # Task URLs
     path('api/tasks/<int:id>/', TaskDetailView.as_view(), name='task-detail'),
