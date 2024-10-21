@@ -7,16 +7,17 @@ import TimesheetPage from './pages/TimesheetPage';
 import EmployeesPage from './pages/EmployeesPage';  
 import ProjectsPage from './pages/ProjectsPage';  
 import ReportsPage from './pages/ReportsPage';  
-import HomePage from './pages/HomePage'; // Home page for employees
-import AdminHomePage from './pages/AdminHomePage'; // Admin home page
+import HomePage from './pages/HomePage';
+import AdminHomePage from './pages/AdminHomePage';
 import TimeClock from './components/TimeClock';
 import AdminTasksPage from './pages/AdminTasksPage';
 import LeavePage from './pages/LeavePage';
-import AdminDashboard from './components/AdminDashboard'; // New admin dashboard component
-import ManageEmployees from './components/ManageEmployees'; // Component for managing employees
-import ManageProjects from './components/ManageProjects'; // Component for managing projects
-import ManageTasks from './components/ManageTasks'; // Component for managing tasks
-import ManageLeaves from './components/ManageLeaves'; // Component for managing leave requests
+import AdminDashboard from './components/AdminDashboard'; 
+import ManageEmployees from './components/ManageEmployees';
+import ManageProjects from './components/ManageProjects';
+import ManageLeaves from './components/ManageLeaves';
+import ManageClockIn from './pages/ManageClockIn';
+import ManageTasks from './components/ManageTasks';
 
 function App() {  
   const [isTimeClockOpen, setIsTimeClockOpen] = useState(false); // State to manage Time Clock visibility
@@ -39,7 +40,7 @@ function App() {
           <Route path="/HomePage" element={token ? <HomePage /> : <Navigate to="/" />} />
           <Route path="/tasks" element={token ? <TasksPage /> : <Navigate to="/" />} />
           <Route path="/timesheet" element={token ? <TimesheetPage /> : <Navigate to="/" />} />
-          <Route path="/clockin" element={token ? <TimeClock /> : <Navigate to="/" />} />
+          <Route path="/clockin" element={token ? <TimeClock onClose={() => setIsTimeClockOpen(false)} /> : <Navigate to="/" />} />
           
           {/* Leave Request Form Route */}
           <Route path="/leave" element={token ? <LeavePage /> : <Navigate to="/" />} />
@@ -47,18 +48,19 @@ function App() {
           {/* Admin Routes */}
           {isAdmin && (
             <>
-              <Route path="/admin" element={token ? <AdminHomePage /> : <Navigate to="/" />} />
-              <Route path="/admin/employees" element={token ? <EmployeesPage /> : <Navigate to="/" />} />
-              <Route path="/admin/projects" element={token ? <ProjectsPage /> : <Navigate to="/" />} />
-              <Route path="/admin/reports" element={token ? <ReportsPage /> : <Navigate to="/" />} />
-              <Route path="/admin/tasks" element={token ? <AdminTasksPage /> : <Navigate to="/" />} />
-              <Route path="/admin/dashboard" element={token ? <AdminDashboard /> : <Navigate to="/" />} />
+              <Route path="/admin" element={<AdminHomePage />} />
+              <Route path="/admin/employees" element={<EmployeesPage />} />
+              <Route path="/admin/projects" element={<ProjectsPage />} />
+              <Route path="/admin/reports" element={<ReportsPage />} />
+              <Route path="/admin/tasks" element={<AdminTasksPage />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
               
               {/* New Admin Management Routes */}
-              <Route path="/admin/manage-employees" element={token ? <ManageEmployees /> : <Navigate to="/" />} />
-              <Route path="/admin/manage-projects" element={token ? <ManageProjects /> : <Navigate to="/" />} />
-              <Route path="/admin/manage-tasks" element={token ? <ManageTasks /> : <Navigate to="/" />} />
-              <Route path="/admin/manage-leaves" element={token ? <ManageLeaves /> : <Navigate to="/" />} />
+              <Route path="/admin/manage-employees" element={<ManageEmployees />} />
+              <Route path="/admin/manage-projects" element={<ManageProjects />} />
+              <Route path="/admin/manage-tasks" element={<ManageTasks />} /> {/* Ensure it's imported */}
+              <Route path="/admin/manage-leaves" element={<ManageLeaves />} />
+              <Route path="/admin/manage-clockin" element={<ManageClockIn />} /> {/* Path casing fixed */}
             </>
           )}
         </Routes>

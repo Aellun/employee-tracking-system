@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthProvider';
-import { FaUser, FaCog, FaUserFriends, FaProjectDiagram, FaChartLine, FaTasks, FaCalendarAlt, FaClock } from 'react-icons/fa';
+import { FaUser, FaCog, FaUserFriends,FaCheckCircle, FaProjectDiagram, FaChartLine, FaTasks, FaCalendarAlt, FaClock } from 'react-icons/fa';
 import { Bar } from 'react-chartjs-2';
 import axios from 'axios';
 import {
@@ -84,7 +84,7 @@ const AdminHomePage = () => {
     <div className="container">
       {/* Navbar */}
       <header className="navbar">
-        <h1>Admin Employee Management System</h1>
+        <h1>Employee Management System</h1>
         <div className="user-info">
           <FaUser />
           <span>{user?.name || 'Admin'}</span>
@@ -101,7 +101,7 @@ const AdminHomePage = () => {
           <ul>
             <li>
               <Link to="/admin/employees">
-                <FaUserFriends /> Employees
+                <FaUserFriends /> Manage Employees
               </Link>
             </li>
             <li>
@@ -125,10 +125,17 @@ const AdminHomePage = () => {
               </Link>
             </li>
             <li>
+              <Link to="/admin/manage-clockin">
+                <FaCheckCircle /> Manage Clockin
+              </Link>
+            </li>
+
+            <li>
               <Link to="/clockin">
                 <FaClock /> Clock In
               </Link>
             </li>
+            
           </ul>
           <button onClick={handleLogout}>Logout</button>
         </aside>

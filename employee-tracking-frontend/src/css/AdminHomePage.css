@@ -38,6 +38,7 @@ h1, h2, h3 {
 .navbar h1 {
   font-size: 1.8rem;
   font-weight: bold;
+  color: white;
 }
 
 .navbar .user-info {
