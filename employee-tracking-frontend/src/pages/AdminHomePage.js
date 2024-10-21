@@ -4,7 +4,26 @@ import { useAuth } from '../AuthProvider';
 import { FaUser, FaCog, FaUserFriends, FaProjectDiagram, FaChartLine, FaTasks, FaCalendarAlt, FaClock } from 'react-icons/fa';
 import { Bar } from 'react-chartjs-2';
 import axios from 'axios';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js'; // Import necessary Chart.js components
 import '../css/AdminHomePage.css'; // Import the custom CSS
+
+// Register the Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const AdminHomePage = () => {
   const { logout, token, user } = useAuth();
@@ -118,7 +137,6 @@ const AdminHomePage = () => {
         <main className="main-content">
           <section className="section">
             <h2>Welcome to the Admin Dashboard</h2>
-            <p>Manage employees, projects, reports, tasks, and leaves.</p>
             <div className="grid grid-3">
               <div className="card">
                 <FaUserFriends className="icon" />
