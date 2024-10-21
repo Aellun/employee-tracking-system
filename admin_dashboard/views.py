@@ -443,3 +443,41 @@ class TaskListView(generics.ListCreateAPIView):
         #return Task.objects.filter(assigned_to=self.request.user)
         return super().get_queryset()
     
+
+# Fetch all clock-in records or create a new one
+@api_view(['GET', 'POST'])
+def clockin_list(request):
+    if request.method == 'GET':
+        records = ClockInRecord.objects.all()
+        serializer = ClockInRecordSerializer(records, many=True)
+        return Response(serializer.data)
+    
+    if request.method == 'POST':
+        serializer = ClockInRecordSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Fetch, update, or delete a specific clock-in record
+@api_view(['GET', 'PUT', 'DELETE'])
+def clockin_detail(request, pk):
+    try:
+        record = ClockInRecord.objects.get(pk=pk)
+    except ClockInRecord.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'GET':
+        serializer = ClockInRecordSerializer(record)
+        return Response(serializer.data)
+    
+    if request.method == 'PUT':
+        serializer = ClockInRecordSerializer(record, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    if request.method == 'DELETE':
+        record.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

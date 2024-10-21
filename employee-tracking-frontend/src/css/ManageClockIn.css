@@ -1,0 +1,184 @@
+.manage-clock-in {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.manage-clock-in h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #191C24; /* Primary color */
+}
+
+.toggle-form-btn, .submit-btn {
+  background: linear-gradient(90deg, #0D6EFD, #198754); /* Gradient for toggle and submit buttons */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 15px;
+  cursor: pointer;
+  margin-right: 10px; /* Add spacing between buttons */
+}
+
+.submit-btn:hover {
+  background: linear-gradient(90deg, #0D6EFD, #0dcaf0); /* Adjust hover gradient for submit */
+}
+
+.edit-btn {
+  background: linear-gradient(90deg, #198754, #0dcaf0); /* Gradient for edit button */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 15px;
+  cursor: pointer;
+  margin-right: 10px; /* Add spacing between buttons */
+}
+
+.edit-btn:hover {
+  background: linear-gradient(90deg, #198754, #AB2E3C); /* Adjust hover gradient for edit */
+}
+
+.delete-btn {
+  background: linear-gradient(90deg, #AF1763, #AB2E3C); /* Gradient for delete button */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: linear-gradient(90deg, #AF1763, #FFC107); /* Adjust hover gradient for delete */
+}
+
+.form {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #191C24; /* Primary color */
+}
+
+.clock-in-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.clock-in-table th, .clock-in-table td {
+  border: 1px solid #dee2e6;
+  padding: 10px;
+  text-align: left;
+}
+
+.clock-in-table th {
+  background-color: #191C24; /* Primary color */
+  color: white;
+}
+
+.filter-section {
+  margin-bottom: 20px;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.filter-section h3 {
+  margin-bottom: 15px;
+  font-size: 22px;
+  color: #191C24; /* Primary color */
+}
+
+.filter-group {
+  margin-bottom: 15px;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #191C24; /* Primary color */
+}
+
+.filter-input, .filter-select {
+  width: 100%; /* Full width */
+  padding: 10px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 16px; /* Larger font for better readability */
+  color: #191C24; /* Primary color */
+  transition: border-color 0.3s; /* Transition for border color */
+}
+
+.filter-input:focus, .filter-select:focus {
+  border-color: #0D6EFD; /* Highlight border on focus */
+  outline: none; /* Remove outline */
+}
+
+.filter-select {
+  background-color: #f9f9f9; /* Light background for dropdown */
+}
+
+.filter-select option {
+  background-color: white; /* White background for options */
+  color: #191C24; /* Primary color for text */
+}
+
+
+.pagination {
+  display: flex;
+  justify-content: center;
+}
+
+.pagination button {
+  margin: 0 5px;
+  background-color: #AF1763; /* Primary supporting color */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.pagination button.active {
+  background-color: #0056b3; /* Adjust active color as needed */
+}
+
+.error {
+  color: red;
+  margin-bottom: 10px;
+}
+
+/* Additional supporting colors for future use */
+.support-color-1 {
+  background-color: #0D6EFD; /* Supporting color 1 */
+}
+
+.support-color-2 {
+  background-color: #198754; /* Supporting color 2 */
+}
+
+.support-color-3 {
+  background-color: #0dcaf0; /* Supporting color 3 */
+}
+
+.support-color-4 {
+  background-color: #AB2E3C; /* Supporting color 4 */
+}
+
+.support-color-5 {
+  background-color: #FFC107; /* Supporting color 5 */
+}
