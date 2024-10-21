@@ -89,10 +89,10 @@ const HomePage = () => {
                 <FaUser className="icon" /> Leave
               </Link>
             </li>
-          </ul>
-          <button onClick={handleLogout} className="logout-btn">
-            <FaSignOutAlt className="icon" /> Logout
-          </button>
+            </ul>
+              <Link to="/" onClick={handleLogout} className="sidebar-link">
+              <FaSignOutAlt className="icon" /> Logout
+              </Link>
         </aside>
 
         {/* Main content */}
