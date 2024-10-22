@@ -2,7 +2,9 @@ from django.urls import path
 from . import views
 from .views import (
     AdminStatisticsView, LeaveRequestListView, LeaveRequestDetailView, 
-    EmployeeListView, EmployeeDetailView, TaskDetailView, TaskListView
+    EmployeeListView, EmployeeDetailView, TaskDetailView, TaskListView,
+    LeaveBalanceReportView, LeaveRequestReportView, WorkHoursReportView, 
+    ProjectTaskReportView, BillableHoursReportView, PerformanceMetricsReportView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -42,6 +44,13 @@ urlpatterns = [
     # clockins URLs
     path('api/clockins/', views.clockin_list, name='clockin-list'),
     path('api/clockins/<int:pk>/', views.clockin_detail, name='clockin-detail'),
-
+    
+    # report paths
+    path('api/reports/leave-balance/', LeaveBalanceReportView.as_view(), name='leave-balance-report'),
+    path('api/reports/leave-requests/', LeaveRequestReportView.as_view(), name='leave-requests-report'),
+    path('api/reports/work-hours/', WorkHoursReportView.as_view(), name='work-hours-report'),
+    path('api/reports/tasks/', ProjectTaskReportView.as_view(), name='tasks-report'),
+    path('api/reports/billable-hours/', BillableHoursReportView.as_view(), name='billable-hours-report'),
+    path('api/reports/performance-metrics/', PerformanceMetricsReportView.as_view(), name='performance-metrics-report'),
 
 ]

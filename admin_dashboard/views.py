@@ -481,3 +481,117 @@ def clockin_detail(request, pk):
     if request.method == 'DELETE':
         record.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+ # report section
+class LeaveBalanceReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        leave_balances = LeaveBalance.objects.all()
+        data = [
+            {
+                'user': balance.user.username,
+                'annual': balance.annual,
+                'sick': balance.sick,
+                'casual': balance.casual,
+                'maternity': balance.maternity
+            }
+            for balance in leave_balances
+        ]
+        return Response(data)
+
+class LeaveRequestReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        leave_requests = LeaveRequest.objects.all()
+        data = [
+            {
+                'employee_name': req.employee_name,
+                'employee_email': req.employee_email,
+                'leave_type': req.leave_type,
+                'start_date': req.start_date,
+                'end_date': req.end_date,
+                'status': req.status,
+                'reason': req.reason,
+            }
+            for req in leave_requests
+        ]
+        return Response(data)
+
+class WorkHoursReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        clock_in_records = ClockInRecord.objects.all()
+        data = [
+            {
+                'user': record.user.username,
+                'clocked_in': record.time_clocked_in,
+                'clocked_out': record.time_clocked_out,
+                'hours_worked': record.hours_worked,
+                'extra_hours': record.extra_hours
+            }
+            for record in clock_in_records
+        ]
+        return Response(data)
+
+
+class ProjectTaskReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        projects = Project.objects.all()
+        data = []
+
+        for project in projects:
+            tasks = Task.objects.filter(assigned_to__project=project)
+            task_data = [
+                {
+                    'task_name': task.name,
+                    'status': task.status,
+                    'assigned_to': task.assigned_to.username,
+                    'due_date': task.due_date
+                }
+                for task in tasks
+            ]
+            data.append({
+                'project': project.name,
+                'tasks': task_data
+            })
+        
+        return Response(data)
+
+class BillableHoursReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        time_entries = TimeEntry.objects.filter(is_billable=True)
+        data = [
+            {
+                'employee': entry.employee.first_name + " " + entry.employee.last_name,
+                'task': entry.task.name,
+                'start_time': entry.start_time,
+                'end_time': entry.end_time,
+                'billable_hours': (entry.end_time - entry.start_time).total_seconds() / 3600 if entry.end_time else 0
+            }
+            for entry in time_entries
+        ]
+        return Response(data)
+
+
+class PerformanceMetricsReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        completed_tasks = Task.objects.filter(status='completed').count()
+        pending_tasks = Task.objects.filter(status='pending').count()
+        in_progress_tasks = Task.objects.filter(status='in_progress').count()
+
+        data = {
+            'total_completed': completed_tasks,
+            'total_pending': pending_tasks,
+            'total_in_progress': in_progress_tasks,
+        }
+        return Response(data)

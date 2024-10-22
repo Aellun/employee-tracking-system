@@ -6,7 +6,7 @@ import TasksPage from './pages/TasksPage';
 import TimesheetPage from './pages/TimesheetPage';  
 import EmployeesPage from './pages/EmployeesPage';  
 import ProjectsPage from './pages/ProjectsPage';  
-import ReportsPage from './pages/ReportsPage';  
+import ReportsPage from './pages/ReportsPage'; 
 import HomePage from './pages/HomePage';
 import AdminHomePage from './pages/AdminHomePage';
 import TimeClock from './components/TimeClock';
@@ -51,7 +51,7 @@ function App() {
               <Route path="/admin" element={<AdminHomePage />} />
               <Route path="/admin/employees" element={<EmployeesPage />} />
               <Route path="/admin/projects" element={<ProjectsPage />} />
-              <Route path="/admin/reports" element={<ReportsPage />} />
+              <Route path="/admin/reportspage" element={<ReportsPage />} />
               <Route path="/admin/tasks" element={<AdminTasksPage />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               

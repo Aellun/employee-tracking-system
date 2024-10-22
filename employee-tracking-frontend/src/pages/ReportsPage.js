@@ -1,27 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import LeaveBalanceReport from './reports/LeaveBalanceReport';
+import LeaveRequestReport from './reports/LeaveRequestReport';
+import WorkHoursReport from './reports/WorkHoursReport';
+import ProjectTaskReport from './reports/ProjectTaskReport';
+import PerformanceMetricsReport from './reports/PerformanceMetricsReport';
+import BillableHoursReport from './reports/BillableHoursReport';
 
 const ReportsPage = () => {
-  const [timeEntries, setTimeEntries] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    axios.get('http://127.0.0.1:8000/admin_dashboard/time-entries/')
-      .then(response => setTimeEntries(response.data))
-      .catch(error => console.error('Error fetching time entries:', error));
-  }, []);
+    useEffect(() => {
+        // You could load some common info here, or handle loading states
+        setLoading(false);
+    }, []);
 
-  return (
-    <div>
-      <h1>Reports</h1>
-      <ul>
-        {timeEntries.map(entry => (
-          <li key={entry.id}>
-            {entry.employee.first_name} worked on {entry.project.name} from {entry.start_time} to {entry.end_time}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+    return (
+        <div className="reports-page">
+            <h1>Reports Dashboard</h1>
+
+            {loading ? (
+                <p>Loading reports...</p>
+            ) : (
+                <>
+                    <LeaveBalanceReport />
+                    <LeaveRequestReport />
+                    <WorkHoursReport />
+                    <ProjectTaskReport />
+                    <BillableHoursReport />
+                    <PerformanceMetricsReport />
+                </>
+            )}
+        </div>
+    );
 };
 
 export default ReportsPage;

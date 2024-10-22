@@ -110,7 +110,7 @@ const AdminHomePage = () => {
               </Link>
             </li>
             <li>
-              <Link to="/admin/reports">
+            <Link to="/admin/reportspage">
                 <FaChartLine /> Reports
               </Link>
             </li>
