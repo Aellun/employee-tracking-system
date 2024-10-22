@@ -33,10 +33,12 @@ h1, h2, h3 {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0; 
+  z-index: 100;
 }
-
 .navbar h1 {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: bold;
   color: white;
 }
@@ -65,7 +67,7 @@ h1, h2, h3 {
 .sidebar {
   background-color: #ffffff;
   width: 240px;
-  padding: 2rem;
+  padding: 1rem;
   box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;

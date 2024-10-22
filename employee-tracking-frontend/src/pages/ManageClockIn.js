@@ -7,7 +7,7 @@ import '../css/ManageClockIn.css'; // Importing custom CSS
 const ManageClockIn = () => {
   const { token } = useAuth();
   const [clockInRecords, setClockInRecords] = useState([]);
-  const [users, setUsers] = useState([]); 
+  const [users, setUsers] = useState([]); // Store employees here
   const [formData, setFormData] = useState({
     id: '',
     time_clocked_in: '',
@@ -21,7 +21,6 @@ const ManageClockIn = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 20;
-  const [employees, setEmployees] = useState([]);
 
   const [filter, setFilter] = useState({
     date: '',
@@ -33,7 +32,7 @@ const ManageClockIn = () => {
     fetchEmployees();
   }, []);
 
-  const fetchClockInRecords = async () => {
+  const fetchClockInRecords = async () => {    
     try {
       const response = await axios.get('http://localhost:8000/admin-dashboard/api/clockins/', {
         headers: { Authorization: `Bearer ${token}` },
@@ -49,7 +48,7 @@ const ManageClockIn = () => {
       const response = await axios.get('http://localhost:8000/admin-dashboard/api/employees/data/', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUsers(response.data);
+      setUsers(response.data); // Store fetched employees in the users state
     } catch (error) {
       setError('Failed to fetch users.');
     }
@@ -131,22 +130,26 @@ const ManageClockIn = () => {
     setEditing(false);
   };
 
-  const getUserName = (userId) => {
-    const employee = employees.find((employee) => employee.id === userId); // Use employees instead of users
-    return employee ? `${employee.first_name} ${employee.last_name}` : 'Unknown Employee'; // Format the full name
+  const getUserName = (user_id) => {
+    const user = users.find((employees) => employees.id === user_id);
+    return user ? `${user.first_name} ${user.last_name}` : 'Unknown Employee';
   };
-  
+  // const user_id = 1;
+  // const userName = getUserName(user_id);
+  // console.log(`User name for ID ${user_id}:`, userName);
   const toggleForm = () => setShowForm(!showForm);
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
   };
 
-  const filteredRecords = clockInRecords.filter(record => {
+  const filteredRecords = clockInRecords.filter((record) => {
     const recordDate = new Date(record.time_clocked_in).toISOString().split('T')[0];
+    const userName = getUserName(record.user);  // Get the user name based on user_id
+    
     return (
       (filter.date ? recordDate === filter.date : true) &&
-      (filter.employee ? record.user_id === filter.employee : true)
+      (filter.employee ? userName === filter.employee : true)  // Compare the name, not the ID
     );
   });
 
@@ -229,43 +232,42 @@ const ManageClockIn = () => {
         </form>
       )}
 
-     {/* Filter Section */}
-<div className="filter-section">
-  <h3>Filter Records</h3>
-  <div className="filter-group">
-    <label>Date:</label>
-    <input
-      type="date"
-      name="date"
-      value={filter.date}
-      onChange={handleFilterChange}
-      className="filter-input"
-    />
-  </div>
-  <div className="filter-group">
-    <label>Employee:</label>
-    <select
-      name="employee"
-      value={filter.employee}
-      onChange={handleFilterChange}
-      className="filter-select"
-    >
-      <option value="">All Employees</option>
-      {users.map((user) => (
-        <option key={user.id} value={user.id}>
-          {`${user.first_name} ${user.last_name}`}
-        </option>
-      ))}
-    </select>
-  </div>
-</div>
+      {/* Filter Section */}
+      <div className="filter-section">
+        <h3>Filter Records</h3>
+        <div className="filter-group">
+          <label>Date:</label>
+          <input
+            type="date"
+            name="date"
+            value={filter.date}
+            onChange={handleFilterChange}
+            className="filter-input"
+          />
+        </div>
+        <div className="filter-group">
+          <label>Employee:</label>
+          <select
+            name="employee"
+            value={filter.employee}
+            onChange={handleFilterChange}
+            className="filter-select"
+          >
+            <option value="">All Employees</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {`${user.first_name} ${user.last_name}`}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-
-      {/* Table */}
-      <table className="clock-in-table">
+      {/* Records Table */}
+      <table className="records-table">
         <thead>
           <tr>
-            <th>#</th>
+            <th>ID</th>
             <th>Time Clocked In</th>
             <th>Time Clocked Out</th>
             <th>Extra Hours</th>
@@ -275,13 +277,13 @@ const ManageClockIn = () => {
           </tr>
         </thead>
         <tbody>
-          {paginatedRecords.map((record, index) => (
+          {paginatedRecords.map((record) => (
             <tr key={record.id}>
-              <td>{startIndex + index + 1}</td>
+              <td>{record.id}</td>
               <td>{new Date(record.time_clocked_in).toLocaleString()}</td>
-              <td>{new Date(record.time_clocked_out).toLocaleString()}</td>
+              <td>{record.time_clocked_out ? new Date(record.time_clocked_out).toLocaleString() : 'N/A'}</td>
               <td>{record.extra_hours}</td>
-              <td>{getUserName(record.user_id)}</td>
+              <td>{getUserName(record.user)}</td>
               <td>{record.hours_worked}</td>
               <td>
                 <button onClick={() => editRecord(record)} className="edit-btn">
@@ -297,12 +299,18 @@ const ManageClockIn = () => {
       </table>
 
       {/* Pagination Controls */}
-      <div className="pagination">
-        {Array.from({ length: Math.ceil(filteredRecords.length / recordsPerPage) }, (_, i) => (
-          <button key={i} onClick={() => handlePageChange(i + 1)} className={currentPage === i + 1 ? 'active' : ''}>
-            {i + 1}
-          </button>
-        ))}
+      <div className="pagination-controls">
+        {Array(Math.ceil(filteredRecords.length / recordsPerPage))
+          .fill()
+          .map((_, index) => (
+            <button
+              key={index}
+              onClick={() => handlePageChange(index + 1)}
+              className={index + 1 === currentPage ? 'active' : ''}
+            >
+              {index + 1}
+            </button>
+          ))}
       </div>
     </div>
   );
