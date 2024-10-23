@@ -1,0 +1,92 @@
+/* Container styling */
+.report-section {
+    padding: 20px;
+    background: linear-gradient(to bottom right, #e0eafc, #cfdef3); /* Light blue gradient */
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+    max-width: 90%;
+    margin: 0 auto;
+}
+
+/* Title */
+.report-section h2 {
+    text-align: center;
+    color: #34495e; /* Professional dark blue-gray color */
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+/* Filters styling */
+.filters {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.filters input, .filters select {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 48%;
+    outline: none;
+}
+
+/* Table styling */
+.leave-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.leave-table th, .leave-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.leave-table th {
+    background-color: #2c3e50; /* Professional dark slate color */
+    color: white;
+}
+
+.leave-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.leave-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Button styling */
+.download-buttons {
+    text-align: center;
+}
+
+.download-buttons .btn {
+    background-color: #27ae60; /* Green */
+    color: white;
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.download-buttons .btn:hover {
+    background-color: #1e8449; /* Darker green */
+}
+
+/* Responsive design */
+@media screen and (max-width: 768px) {
+    .filters {
+        flex-direction: column;
+    }
+
+    .filters input, .filters select {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
