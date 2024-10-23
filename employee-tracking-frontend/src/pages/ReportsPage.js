@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import axios from 'axios';
 import { useAuth } from '../AuthProvider';
+import '../css/ReportsPage.css';
 
 const ReportsPage = () => {
   const [loading, setLoading] = useState(true);

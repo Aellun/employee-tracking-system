@@ -1,75 +1,85 @@
-.reports-page-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
-
-.reports-page-wrapper .navbar {
-    background-color: #333;
-    color: white;
-    padding: 15px;
+/* Custom CSS for ReportsPage with green, goldish, and light orange tones */
+body, html {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  header {
+    background: linear-gradient(90deg, #4caf50, #f4d03f); /* Green to Gold gradient */
+    color: #fff;
+    padding: 1rem;
     text-align: center;
-    flex-shrink: 0;
-}
-
-.reports-page-wrapper .container {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-    height: calc(100vh - 60px); /* Ensure height for container */
-}
-
-.reports-page-wrapper .sidebar {
-    background-color: #f4f4f4;
-    width: 250px;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-    flex-shrink: 0;
-    height: 100%;
-    overflow-y: auto;
-}
-
-.reports-page-wrapper .sidebar ul {
+  }
+  
+  footer {
+    background: linear-gradient(90deg, #f4d03f, #f39c12); /* Gold to light orange gradient */
+    color: white;
+    padding: 1rem;
+    text-align: center;
+  }
+  
+  aside {
+    background-color: #f7f9fc;
+    padding: 2rem 1rem;
+    border-right: 1px solid #ddd;
+  }
+  
+  aside ul {
     list-style: none;
     padding: 0;
-}
-
-.reports-page-wrapper .sidebar ul li {
-    margin: 10px 0;
-}
-
-.reports-page-wrapper .sidebar ul li a {
-    text-decoration: none;
-    color: #333;
-    padding: 10px;
+  }
+  
+  aside ul li a {
     display: block;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
     border-radius: 4px;
-    transition: background-color 0.3s;
-}
-
-.reports-page-wrapper .sidebar ul li a:hover {
-    background-color: #ddd;
-}
-
-.reports-page-wrapper .main-content {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
+    color: #4caf50;
+    font-weight: 600;
+    text-decoration: none;
     background-color: #fff;
-    display: flex;
-    flex-direction: column;
-}
-
-.reports-page-wrapper .chart-container {
-    margin-bottom: 40px;
+    border: 1px solid #4caf50;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  aside ul li a:hover {
+    background-color: #4caf50;
+    color: #fff;
+  }
+  
+  main {
+    padding: 2rem;
+    background-color: #fff;
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+  
+  main h2 {
+    color: #333;
+    margin-bottom: 2rem;
+    font-size: 1.75rem;
+  }
+  
+  .chart-container {
+    padding: 2rem;
+    background: linear-gradient(120deg, #fdfbfb, #ebedee); /* Light gradient for background */
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-center {
     text-align: center;
-}
-
-.reports-page-wrapper .footer {
-    background-color: #333;
-    color: white;
-    text-align: center;
-    padding: 10px;
-    width: 100%;
-    flex-shrink: 0;
-}
+  }
+  
+  @media (max-width: 768px) {
+    .grid {
+      grid-template-columns: 1fr !important;
+    }
+  
+    aside {
+      width: 100%;
+    }
+  }
+  
