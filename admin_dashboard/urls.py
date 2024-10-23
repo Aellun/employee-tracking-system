@@ -4,7 +4,8 @@ from .views import (
     AdminStatisticsView, LeaveRequestListView, LeaveRequestDetailView, 
     EmployeeListView, EmployeeDetailView, TaskDetailView, TaskListView,
     LeaveBalanceReportView, LeaveRequestReportView, WorkHoursReportView, 
-    ProjectTaskReportView, BillableHoursReportView, PerformanceMetricsReportView
+    ProjectTaskReportView, BillableHoursReportView, PerformanceMetricsReportView,
+    PerformanceListCreateView, PerformanceDetailView, WorkHoursListCreateView, WorkHoursDetailView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -52,5 +53,10 @@ urlpatterns = [
     path('api/reports/tasks/', ProjectTaskReportView.as_view(), name='tasks-report'),
     path('api/reports/billable-hours/', BillableHoursReportView.as_view(), name='billable-hours-report'),
     path('api/reports/performance-metrics/', PerformanceMetricsReportView.as_view(), name='performance-metrics-report'),
+    path('api/aggregated-reports/', views.aggregated_reports, name='aggregated_reports'),
+    path('api/performance/', PerformanceListCreateView.as_view(), name='performance-list-create'),
+    path('api/performance/<int:pk>/', PerformanceDetailView.as_view(), name='performance-detail'),
+    path('api/workhours/', WorkHoursListCreateView.as_view(), name='workhours-list-create'),
+    path('api/workhours/<int:pk>/', WorkHoursDetailView.as_view(), name='workhours-detail'),
 
 ]

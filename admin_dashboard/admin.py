@@ -1,9 +1,10 @@
 from django.contrib import admin
-from timesystem.models import Employee, Project, Task, TimeEntry, LeaveRequest, ClockInRecord, LeaveBalance
-
+from timesystem.models import Employee, Project, Task, TimeEntry, LeaveRequest, ClockInRecord, LeaveBalance, Performance, WorkHours
+admin.site.register(Performance)
+admin.site.register(WorkHours)
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ['first_name', 'last_name', 'email', 'position']  # Updated 'position' to 'role'
+    list_display = ['first_name', 'last_name', 'email', 'position'] 
     search_fields = ['first_name', 'last_name', 'email', 'position']
 
 @admin.register(Project)

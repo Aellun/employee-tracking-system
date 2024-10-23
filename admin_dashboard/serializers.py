@@ -2,7 +2,7 @@
 
 from rest_framework import serializers  
 from django.contrib.auth import get_user_model  
-from timesystem.models import Employee, Project, Task, TimeEntry, ClockInRecord, JobRecord, BreakRecord, LeaveRequest, LeaveBalance  
+from timesystem.models import Employee, Project, Task, TimeEntry, ClockInRecord, JobRecord, BreakRecord,LeaveRequest, LeaveBalance, Performance, WorkHours
 
 User = get_user_model()  
 
@@ -86,11 +86,6 @@ class LeaveBalanceSerializer(serializers.ModelSerializer):
         fields = '__all__'  # Removed the trailing comma
 
 
-class TaskSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Task
-        fields = ['id', 'name', 'description', 'due_date', 'status', 'assigned_to']
-
     # Optional custom update logic for partial updates
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
@@ -100,3 +95,39 @@ class TaskSerializer(serializers.ModelSerializer):
         instance.assigned_to = validated_data.get('assigned_to', instance.assigned_to)
         instance.save()
         return instance
+    
+
+class PerformanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Performance
+        fields = ['id', 'user', 'tasks_completed', 'tasks_assigned', 'efficiency_rate', 'review_date']
+        read_only_fields = ['id', 'review_date', 'efficiency_rate']
+        
+        # Optional: Calculate efficiency dynamically if not stored in the model
+        def to_representation(self, instance):
+            representation = super().to_representation(instance)
+            if instance.tasks_assigned > 0:
+                representation['efficiency_rate'] = (instance.tasks_completed / instance.tasks_assigned) * 100
+            else:
+                representation['efficiency_rate'] = 0
+            return representation
+        
+
+class WorkHoursSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkHours
+        fields = ['id', 'user', 'clock_in_time', 'clock_out_time', 'total_hours']
+        read_only_fields = ['id', 'total_hours']
+
+    # Optional: Auto-calculate total hours if clock_out_time is provided
+    def validate(self, data):
+        if data.get('clock_out_time') and data.get('clock_in_time'):
+            if data['clock_out_time'] < data['clock_in_time']:
+                raise serializers.ValidationError("Clock out time cannot be before clock in time.")
+        return data
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.clock_out_time:
+            instance.calculate_total_hours()  # Calculate the total hours
+        return representation

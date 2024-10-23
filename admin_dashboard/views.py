@@ -13,8 +13,10 @@ from django.db.models import Sum, Count
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
+from django.db.models import Avg, Count,Q
+from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
-from timesystem.models import Employee, Project, Task, LeaveBalance, TimeEntry, ClockInRecord, LeaveRequest
+from timesystem.models import Employee, Project, Task, LeaveBalance, TimeEntry, ClockInRecord, LeaveRequest,Performance,WorkHours
 from .serializers import (
     EmployeeSerializer, 
     ProjectSerializer, 
@@ -23,7 +25,9 @@ from .serializers import (
     LeaveRequestSerializer, 
     LeaveBalanceSerializer,
     ClockInRecordSerializer,
-    UserSerializer
+    UserSerializer,
+    PerformanceSerializer,
+    WorkHoursSerializer
 )
 import logging
 
@@ -595,3 +599,71 @@ class PerformanceMetricsReportView(APIView):
             'total_in_progress': in_progress_tasks,
         }
         return Response(data)
+    
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def aggregated_reports(request):
+    try:
+        # Check if the user is a valid employee
+        employee = Employee.objects.filter(user=request.user).first()
+        if not employee:
+            return Response({"error": "Employee record not found for the current user."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Calculate various statistics
+        task_completed_count = Task.objects.filter(status='completed').count()
+        task_pending_count = Task.objects.filter(status='pending').count()
+        total_tasks_count = Task.objects.count()
+
+        leave_approved_count = LeaveRequest.objects.filter(status='approved').count()
+        leave_pending_count = LeaveRequest.objects.filter(status='pending').count()
+        leave_rejected_count = LeaveRequest.objects.filter(status='rejected').count()
+        total_leave_requests = LeaveRequest.objects.count()
+
+        average_hours_worked = ClockInRecord.objects.filter(hours_worked__gt=0).aggregate(Avg('hours_worked'))['hours_worked__avg'] or 0
+
+        # Calculate rates
+        task_completion_rate = (task_completed_count / total_tasks_count * 100) if total_tasks_count else 0
+        leave_request_rate = (leave_approved_count / total_leave_requests * 100) if total_leave_requests else 0
+        leave_approval_rate = (leave_approved_count / total_leave_requests * 100) if total_leave_requests else 0
+        # Construct the response data
+        aggregated_data = {
+            "task_statistics": {
+                "total_tasks": total_tasks_count,
+                "completed": task_completed_count,
+                "pending": task_pending_count,
+                "completion_rate": task_completion_rate,
+            },
+            "leave_statistics": {
+                "total_leave_requests": total_leave_requests,
+                "approved": leave_approved_count,
+                "pending": leave_pending_count,
+                "approval_rate": leave_approval_rate,
+            },
+            "average_hours_worked": average_hours_worked,
+            "leave_request_rate": leave_request_rate,
+        }
+
+        return Response(aggregated_data, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        # Log the specific error for debugging
+        print(f"Error in aggregated_reports: {str(e)}")
+        return Response({"error": "An error occurred while processing your request."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+# Performance API views
+class PerformanceListCreateView(generics.ListCreateAPIView):
+    queryset = Performance.objects.all()
+    serializer_class = PerformanceSerializer
+
+class PerformanceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Performance.objects.all()
+    serializer_class = PerformanceSerializer
+
+# WorkHours API views
+class WorkHoursListCreateView(generics.ListCreateAPIView):
+    queryset = WorkHours.objects.all()
+    serializer_class = WorkHoursSerializer
+
+class WorkHoursDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = WorkHours.objects.all()
+    serializer_class = WorkHoursSerializer

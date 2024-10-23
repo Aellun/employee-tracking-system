@@ -1,18 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../../AuthProvider'; // Import the useAuth hook
 
 const LeaveBalanceReport = () => {
     const [leaveBalances, setLeaveBalances] = useState([]);
+    const { token } = useAuth(); // Access the token from AuthProvider
 
     useEffect(() => {
-        axios.get('http://localhost:8000/admin-dashboard/api/reports/leave-balance/')
+        if (token) {
+            axios.get('http://localhost:8000/admin-dashboard/api/reports/leave-balance/', {
+                headers: {
+                    Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+                },
+            })
             .then(response => {
                 setLeaveBalances(response.data);
             })
             .catch(error => {
                 console.error('Error fetching leave balances:', error);
             });
-    }, []);
+        }
+    }, [token]); // Effect will run when the token is available
 
     return (
         <div className="report-section">

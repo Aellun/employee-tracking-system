@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 class Employee(models.Model):
+    user = models.ForeignKey(User, related_name='employees', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
@@ -153,3 +154,30 @@ class LeaveBalance(models.Model):
 
     def __str__(self):
         return f'{self.user.username} Leave Balance'
+    
+
+class Performance(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    tasks_completed = models.IntegerField(default=0)
+    tasks_assigned = models.IntegerField(default=0)
+    efficiency_rate = models.FloatField(default=0.0)  # This could be calculated as (tasks_completed / tasks_assigned) * 100
+    review_date = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.efficiency_rate}%"
+    
+
+class WorkHours(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    clock_in_time = models.DateTimeField()
+    clock_out_time = models.DateTimeField(null=True, blank=True)
+    total_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)  # Calculated as the difference between clock_in_time and clock_out_time
+
+    def calculate_total_hours(self):
+        if self.clock_out_time:
+            time_diff = self.clock_out_time - self.clock_in_time
+            self.total_hours = time_diff.total_seconds() / 3600  # Convert seconds to hours
+            self.save()
+
+    def __str__(self):
+        return f"{self.user.username} - {self.total_hours} hours"
