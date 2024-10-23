@@ -509,7 +509,29 @@ class LeaveRequestReportView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        # Retrieve query parameters
+        employee_name = request.query_params.get('employeeName', None)
+        leave_type = request.query_params.get('leaveType', None)
+        status = request.query_params.get('status', None)
+        start_date = request.query_params.get('startDate', None)
+        end_date = request.query_params.get('endDate', None)
+
+        # Start with all leave requests
         leave_requests = LeaveRequest.objects.all()
+
+        # Apply filters
+        if employee_name:
+            leave_requests = leave_requests.filter(employee_name__icontains=employee_name)
+        if leave_type:
+            leave_requests = leave_requests.filter(leave_type=leave_type)
+        if status:
+            leave_requests = leave_requests.filter(status=status)
+        if start_date:
+            leave_requests = leave_requests.filter(start_date__gte=start_date)
+        if end_date:
+            leave_requests = leave_requests.filter(end_date__lte=end_date)
+
+        # Prepare the response data
         data = [
             {
                 'employee_name': req.employee_name,
@@ -522,6 +544,7 @@ class LeaveRequestReportView(APIView):
             }
             for req in leave_requests
         ]
+        
         return Response(data)
 
 class WorkHoursReportView(APIView):

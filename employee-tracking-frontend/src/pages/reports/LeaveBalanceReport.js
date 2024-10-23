@@ -5,7 +5,7 @@ import { CSVLink } from 'react-csv'; // For CSV download
 import * as XLSX from 'xlsx'; // For Excel download
 import jsPDF from 'jspdf'; // For PDF generation
 import 'jspdf-autotable'; // For PDF tables
-import '../../css/LeaveBalanceReport.css'; // Custom CSS file for styling
+import '../../css/LeaveBalanceReport.css';
 
 const LeaveBalanceReport = () => {
     const [leaveBalances, setLeaveBalances] = useState([]);
