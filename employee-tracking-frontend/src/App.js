@@ -19,6 +19,14 @@ import ManageLeaves from './components/ManageLeaves';
 import ManageClockIn from './pages/ManageClockIn';
 import ManageTasks from './components/ManageTasks';
 
+import LeavesBalanceReport from './pages/reports/LeaveBalanceReport';
+import LeaveRequestReport from './pages/reports/LeaveRequestReport';
+import WorkHoursReport from './pages/reports/WorkHoursReport';
+import ProjectTaskReport from './pages/reports/ProjectTaskReport';
+import BillableHoursReport from './pages/reports/BillableHoursReport';
+import PerformanceMetricsReport from './pages/reports/PerformanceMetricsReport';
+
+
 function App() {  
   const [isTimeClockOpen, setIsTimeClockOpen] = useState(false); // State to manage Time Clock visibility
   const { token, isAdmin } = useAuth(); // Get auth values from context
@@ -61,6 +69,15 @@ function App() {
               <Route path="/admin/manage-tasks" element={<ManageTasks />} /> {/* Ensure it's imported */}
               <Route path="/admin/manage-leaves" element={<ManageLeaves />} />
               <Route path="/admin/manage-clockin" element={<ManageClockIn />} /> {/* Path casing fixed */}
+            
+              {/* Reports Management Routes */}
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/reports/leaves-balance" element={<LeavesBalanceReport />} />
+              <Route path="/reports/leaves-request" element={<LeaveRequestReport />} />
+              <Route path="/reports/work-hours" element={<WorkHoursReport />} />
+              <Route path="/reports/project-task" element={<ProjectTaskReport />} />
+              <Route path="/reports/billable-hours" element={<BillableHoursReport />} />
+              <Route path="/reports/performance-metrics" element={<PerformanceMetricsReport />} />
             </>
           )}
         </Routes>

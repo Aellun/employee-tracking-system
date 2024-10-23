@@ -5,7 +5,7 @@ const LeaveBalanceReport = () => {
     const [leaveBalances, setLeaveBalances] = useState([]);
 
     useEffect(() => {
-        axios.get('/api/reports/leave-balance/')
+        axios.get('http://localhost:8000/admin-dashboard/api/reports/leave-balance/')
             .then(response => {
                 setLeaveBalances(response.data);
             })
