@@ -1,39 +1,44 @@
-.reports-page {
+.reports-page-wrapper {
     display: flex;
     flex-direction: column;
     height: 100vh;
 }
 
-.navbar {
+.reports-page-wrapper .navbar {
     background-color: #333;
     color: white;
     padding: 15px;
     text-align: center;
+    flex-shrink: 0;
 }
 
-.container {
+.reports-page-wrapper .container {
     display: flex;
     flex: 1;
     overflow: hidden;
+    height: calc(100vh - 60px); /* Ensure height for container */
 }
 
-.sidebar {
+.reports-page-wrapper .sidebar {
     background-color: #f4f4f4;
     width: 250px;
     padding: 20px;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+    height: 100%;
+    overflow-y: auto;
 }
 
-.sidebar ul {
+.reports-page-wrapper .sidebar ul {
     list-style: none;
     padding: 0;
 }
 
-.sidebar ul li {
+.reports-page-wrapper .sidebar ul li {
     margin: 10px 0;
 }
 
-.sidebar ul li a {
+.reports-page-wrapper .sidebar ul li a {
     text-decoration: none;
     color: #333;
     padding: 10px;
@@ -42,20 +47,29 @@
     transition: background-color 0.3s;
 }
 
-.sidebar ul li a:hover {
+.reports-page-wrapper .sidebar ul li a:hover {
     background-color: #ddd;
 }
 
-.main-content {
+.reports-page-wrapper .main-content {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
 }
 
-.footer {
+.reports-page-wrapper .chart-container {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.reports-page-wrapper .footer {
     background-color: #333;
     color: white;
     text-align: center;
     padding: 10px;
-    position: relative;
+    width: 100%;
+    flex-shrink: 0;
 }
