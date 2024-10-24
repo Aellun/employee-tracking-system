@@ -15,30 +15,47 @@ const LeaveRequestReport = () => {
     const [status, setStatus] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchLeaveRequests = async () => {
+            setLoading(true);
+            setError('');
             try {
+                // Date range validation
+                if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+                    setError("Start date cannot be later than end date");
+                    setLoading(false);
+                    return;
+                }
+
                 const response = await axios.get('http://localhost:8000/admin-dashboard/api/reports/leave-requests/', {
                     headers: {
                         Authorization: `Bearer ${token}`, // Include the auth token
                     },
                     params: {
-                        employee_name: employeeName,
-                        leave_type: leaveType,
+                        employeeName, // CamelCase parameter as expected by backend
+                        leaveType,
                         status,
-                        start_date: startDate,
-                        end_date: endDate,
+                        startDate,
+                        endDate,
                     },
                 });
                 setLeaveRequests(response.data);
             } catch (error) {
+                setError('Error fetching leave requests.');
                 console.error('Error fetching leave requests:', error);
             }
+            setLoading(false);
         };
 
-        fetchLeaveRequests();
-    }, [employeeName, leaveType, status, startDate, endDate, token]); // Add dependencies for re-fetching
+        const delayDebounceFn = setTimeout(() => {
+            fetchLeaveRequests(); // Fetch the leave requests after a delay
+        }, 300); // 300ms debounce delay
+
+        return () => clearTimeout(delayDebounceFn); // Cleanup debounce
+    }, [employeeName, leaveType, status, startDate, endDate, token]);
 
     // Export to Excel
     const exportToExcel = () => {
@@ -92,9 +109,9 @@ const LeaveRequestReport = () => {
                     onChange={(e) => setStatus(e.target.value)}
                 >
                     <option value="">Status</option>
-                    <option value="approved">Approved</option>
-                    <option value="pending">Pending</option>
-                    <option value="rejected">Rejected</option>
+                    <option value="APPROVED">Approved</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="REJECTED">Rejected</option>
                 </select>
                 <input
                     type="date"
@@ -113,6 +130,10 @@ const LeaveRequestReport = () => {
                 <button onClick={exportToPDF}>Export to PDF</button>
             </div>
 
+            {/* Loading and Error Handling */}
+            {loading && <p>Loading...</p>}
+            {error && <p className="error">{error}</p>}
+
             <table id="leaveRequestsTable">
                 <thead>
                     <tr>
@@ -127,7 +148,7 @@ const LeaveRequestReport = () => {
                 </thead>
                 <tbody>
                     {leaveRequests.map(request => (
-                        <tr key={request.employee_email}>
+                        <tr key={`${request.employee_email}-${request.start_date}`}>
                             <td>{request.employee_name}</td>
                             <td>{request.employee_email}</td>
                             <td>{request.leave_type}</td>
