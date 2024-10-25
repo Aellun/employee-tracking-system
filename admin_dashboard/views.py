@@ -2,6 +2,7 @@ from rest_framework import generics
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.utils.dateparse import parse_datetime
 from rest_framework.response import Response
@@ -551,17 +552,46 @@ class WorkHoursReportView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        # Retrieve query parameters
+        user_id = request.query_params.get('user')
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+
+        # Filter records based on user and date range if provided
         clock_in_records = ClockInRecord.objects.all()
+        
+        if user_id:
+            clock_in_records = clock_in_records.filter(user_id=user_id)
+        
+        if start_date:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+            clock_in_records = clock_in_records.filter(time_clocked_in__date__gte=start_date)
+        
+        if end_date:
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+            clock_in_records = clock_in_records.filter(time_clocked_out__date__lte=end_date)
+
+        # Helper function to format hours and minutes
+        def format_duration(duration):
+            total_minutes = int(duration.total_seconds() // 60)
+            hours, minutes = divmod(total_minutes, 60)
+            return f"{hours} hrs {minutes} mins"
+
+        # Prepare the response data with formatted dates and times
         data = [
             {
-                'user': record.user.username,
-                'clocked_in': record.time_clocked_in,
-                'clocked_out': record.time_clocked_out,
-                'hours_worked': record.hours_worked,
-                'extra_hours': record.extra_hours
+                'user': f"{record.user.first_name} {record.user.last_name}",
+                'clocked_in': record.time_clocked_in.strftime('%d/%m/%Y %I:%M %p'),
+                'clocked_out': (
+                    record.time_clocked_out.strftime('%d/%m/%Y %I:%M %p')
+                    if record.time_clocked_out else 'Still clocked in'
+                ),
+                'hours_worked': format_duration(timedelta(hours=float(record.hours_worked))),
+                'extra_hours': format_duration(timedelta(hours=float(record.extra_hours)))
             }
             for record in clock_in_records
         ]
+
         return Response(data)
 
 

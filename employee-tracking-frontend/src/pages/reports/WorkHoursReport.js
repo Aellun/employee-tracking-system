@@ -70,6 +70,13 @@ const WorkHoursReport = () => {
                 <button onClick={fetchWorkHours}>Filter</button>
             </div>
 
+            {/* Export Buttons */}
+            <div className="export-buttons">
+                <CSVLink data={workHours} filename="WorkHoursReport.csv">Export to CSV</CSVLink>
+                <button onClick={exportToExcel}>Export to Excel</button>
+                <button onClick={exportToPDF}>Export to PDF</button>
+            </div>
+
             <table id="work-hours-table">
                 <thead>
                     <tr>
@@ -81,23 +88,17 @@ const WorkHoursReport = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {workHours.map(record => (
-                        <tr key={record.user}>
+                    {workHours.map((record, index) => (
+                        <tr key={index}>
                             <td>{record.user}</td>
                             <td>{record.clocked_in}</td>
-                            <td>{record.clocked_out || 'Still clocked in'}</td>
+                            <td>{record.clocked_out}</td>
                             <td>{record.hours_worked}</td>
                             <td>{record.extra_hours}</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
-
-            <div className="export-buttons">
-                <CSVLink data={workHours} filename="WorkHoursReport.csv">Export to CSV</CSVLink>
-                <button onClick={exportToExcel}>Export to Excel</button>
-                <button onClick={exportToPDF}>Export to PDF</button>
-            </div>
         </div>
     );
 };
