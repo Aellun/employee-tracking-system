@@ -1,0 +1,83 @@
+.report-section {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #f0f4f8, #d9e8ff);
+    font-family: Arial, sans-serif;
+}
+
+.report-section h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    justify-content: center;
+}
+
+.filters select, .filters input, .filters button {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.filters button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.filters button:hover {
+    background-color: #0056b3;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th, table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+table th {
+    background-color: #f1f5fa;
+    color: #333;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.export-buttons a, .export-buttons button {
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    color: white;
+    background-color: #28a745;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.export-buttons button:hover {
+    background-color: #218838;
+}
+
+.export-buttons a:hover {
+    background-color: #218838;
+}
