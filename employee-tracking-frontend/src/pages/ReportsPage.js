@@ -67,7 +67,7 @@ const ReportsPage = () => {
             <li><Link to="/reports/leaves-request" className="block p-2 rounded hover:bg-gray-200">Leave Request Report</Link></li>
             <li><Link to="/reports/work-hours" className="block p-2 rounded hover:bg-gray-200">Work Hours Report</Link></li>
             <li><Link to="/reports/project-task" className="block p-2 rounded hover:bg-gray-200">Project Task Report</Link></li>
-            <li><Link to="/reports/billable-hours" className="block p-2 rounded hover:bg-gray-200">Billable Hours Report</Link></li>
+            {/* <li><Link to="/reports/billable-hours" className="block p-2 rounded hover:bg-gray-200">Billable Hours Report</Link></li> */}
             <li><Link to="/reports/performance-metrics" className="block p-2 rounded hover:bg-gray-200">Performance Metrics Report</Link></li>
           </ul>
         </aside>

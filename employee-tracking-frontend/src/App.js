@@ -1,4 +1,6 @@
 import React, { useState } from 'react'; 
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';  
 import { AuthProvider, useAuth } from './AuthProvider'; // Import the AuthProvider
 import Login from './components/Login';  
@@ -14,7 +16,7 @@ import AdminTasksPage from './pages/AdminTasksPage';
 import LeavePage from './pages/LeavePage';
 import AdminDashboard from './components/AdminDashboard'; 
 import ManageEmployees from './components/ManageEmployees';
-import ManageProjects from './components/ManageProjects';
+// import ManageProjects from './components/ManageProjects';
 import ManageLeaves from './components/ManageLeaves';
 import ManageClockIn from './pages/ManageClockIn';
 import ManageTasks from './components/ManageTasks';
@@ -64,8 +66,8 @@ function App() {
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               
               {/* New Admin Management Routes */}
-              <Route path="/admin/manage-employees" element={<ManageEmployees />} />
-              <Route path="/admin/manage-projects" element={<ManageProjects />} />
+              {/* <Route path="/admin/manage-employees" element={<ManageEmployees />} /> */}
+              {/* <Route path="/admin/manage-projects" element={<ManageProjects />} /> */}
               <Route path="/admin/manage-tasks" element={<ManageTasks />} /> {/* Ensure it's imported */}
               <Route path="/admin/manage-leaves" element={<ManageLeaves />} />
               <Route path="/admin/manage-clockin" element={<ManageClockIn />} /> {/* Path casing fixed */}

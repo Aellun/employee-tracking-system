@@ -21,6 +21,8 @@ urlpatterns = [
 
     # Project URLs
     path('api/projects/', views.ProjectListCreateView.as_view(), name='project-list-create'),
+    path('api/projects/', views.ProjectListCreateView.as_view(), name='project-list-create'),
+    path('api/projects/<int:pk>/', views.ProjectDetailView.as_view(), name='project-detail'),
 
     # Time Entry URLs
     path('api/time-entries/', views.TimeEntryListCreateView.as_view(), name='timeentry-list-create'),
