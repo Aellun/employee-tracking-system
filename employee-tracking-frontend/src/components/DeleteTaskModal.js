@@ -7,6 +7,7 @@ const DeleteTaskModal = ({ isOpen, onClose, onDelete, task }) => {
   // Return null if the modal is not open
   if (!isOpen) return null;
 
+
   return (
     <>
       {/* Modal Overlay */}

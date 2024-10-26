@@ -3,31 +3,37 @@
   max-width: 800px;
   margin: auto;
   background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.project-filters select {
+.project-filters select, .project-filters input {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
   margin-right: 10px;
+  outline: none;
+  transition: border-color 0.3s ease;
 }
 
-
-.project-filters input {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.project-filters select:focus, .project-filters input:focus {
+  border-color: #1a73e8;
 }
 
 .project-table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 20px;
 }
 
 .project-table th, .project-table td {
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #ddd;
   text-align: left;
+}
+
+.project-table th {
+  background-color: #f1f1f1;
 }
 
 .add-button {
@@ -68,5 +74,91 @@
 }
 
 .delete-button:hover {
+  background-color: #d32f2f;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Modal Content */
+.modal {
+  background-color: #fff;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  position: relative;
+}
+
+.modal h3 {
+  font-size: 1.5em;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.modal input, .modal textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.modal input:focus, .modal textarea:focus {
+  border-color: #1a73e8;
+}
+
+.modal button {
+  padding: 10px 15px;
+  margin: 5px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal button:first-of-type {
+  background-color: #1a73e8;
+  color: #fff;
+}
+
+.modal button:first-of-type:hover {
+  background-color: #1558b0;
+}
+
+.modal button:last-of-type {
+  background-color: #ccc;
+}
+
+.modal button:last-of-type:hover {
+  background-color: #bbb;
+}
+
+/* Delete Confirmation Modal */
+.modal p {
+  font-size: 1em;
+  color: #555;
+}
+
+.modal button.delete-confirm {
+  background-color: #f44336;
+}
+
+.modal button.delete-confirm:hover {
   background-color: #d32f2f;
 }
