@@ -32,10 +32,43 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project  
         fields = '__all__'  
 
-class TaskSerializer(serializers.ModelSerializer):  
-    class Meta:  
-        model = Task  
-        fields = '__all__'  
+
+class TaskSerializer(serializers.ModelSerializer):
+    assigned_to_full_name = serializers.SerializerMethodField()
+    project_name = serializers.SerializerMethodField()
+
+    # New fields for dropdowns
+    assigned_to_name = serializers.CharField(source='assigned_to.first_name', read_only=True)
+    project_name = serializers.CharField(source='project.name', read_only=True)
+
+    class Meta:
+        model = Task
+        fields = ['id', 'name', 'description', 'due_date', 'status', 
+                  'assigned_to', 'assigned_to_full_name', 'project_id', 
+                  'assigned_to_name', 'project_name']
+
+    def get_assigned_to_full_name(self, obj):
+        if obj.assigned_to:
+            return f"{obj.assigned_to.first_name} {obj.assigned_to.last_name}"
+        return None
+
+    def get_project_name(self, obj):
+        if obj.project:
+            return obj.project.name
+        return None
+
+
+    # Optional custom update logic for partial updates
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get('description', instance.description)
+        instance.due_date = validated_data.get('due_date', instance.due_date)
+        instance.status = validated_data.get('status', instance.status)
+        instance.assigned_to = validated_data.get('assigned_to', instance.assigned_to)
+        instance.project = validated_data.get('project', instance.project)  # Update the project
+        instance.save()
+        return instance
+ 
 
 class TimeEntrySerializer(serializers.ModelSerializer):  
     class Meta:  

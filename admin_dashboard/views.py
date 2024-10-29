@@ -16,6 +16,8 @@ from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.db.models import Avg, Count,Q
 from django.db import connection
+from django.db.models import Value
+from django.db.models.functions import Concat
 from rest_framework.decorators import api_view, permission_classes
 from timesystem.models import Employee, Project, Task, LeaveBalance, TimeEntry, ClockInRecord, LeaveRequest,Performance,WorkHours
 from .serializers import (
@@ -449,7 +451,7 @@ class TaskListCreateView(generics.ListCreateAPIView):
         serializer.save()
 
 # Retrieve, Update, and Delete Task
-class TaskDetailView(RetrieveUpdateDestroyAPIView):
+class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     lookup_field = 'id'
@@ -462,17 +464,17 @@ class TaskDetailView(RetrieveUpdateDestroyAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
-    
 
-def delete(self, request, *args, **kwargs):
-    instance = self.get_object()
-    logger.info(f"Deleting Task: {instance.id}")
-    self.perform_destroy(instance)
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        logger.info(f"Deleting Task: {instance.id}")
+        self.perform_destroy(instance)
+        return Response(status=204)  # No Content
     
-    # Ensure the Content-Type header is set
-    response = Response(status=204)
-    response['Content-Type'] = 'application/json'
-    return Response(status=204)
+class ProjectListView(generics.ListAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
 
 # Fetch Users for Task Assignment
 class UserListView(generics.ListAPIView):
@@ -481,13 +483,17 @@ class UserListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]    
 
 class TaskListView(generics.ListCreateAPIView):
-    queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        #return Task.objects.filter(assigned_to=self.request.user)
-        return super().get_queryset()
+        return Task.objects.select_related('assigned_to', 'project').annotate(
+            assigned_to_full_name=Concat(
+                'assigned_to__first_name',
+                Value(' '),
+                'assigned_to__last_name'
+            )
+        )
     
 
 # Fetch all clock-in records or create a new one
@@ -635,6 +641,56 @@ class WorkHoursReportView(APIView):
 
         return Response(data)
 
+
+class ProjectTaskReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Retrieve query parameters for filtering
+        project_name = request.query_params.get('project_name')
+        status = request.query_params.get('status')
+        assigned_to = request.query_params.get('assigned_to')
+        due_date = request.query_params.get('due_date')
+
+        # Filter tasks based on provided parameters
+        tasks = Task.objects.all()
+
+        if project_name:
+            tasks = tasks.filter(project__name__icontains=project_name)
+        
+        if status:
+            tasks = tasks.filter(status__icontains=status)
+        
+        if assigned_to:
+            tasks = tasks.filter(assigned_to__username__icontains=assigned_to)
+        
+        if due_date:
+            try:
+                due_date = parse_date(due_date)
+                tasks = tasks.filter(due_date=due_date)
+            except ValueError:
+                pass  # Ignore invalid date formats
+
+        # Group tasks by project for a structured response
+        project_data = {}
+        for task in tasks:
+            project_name = task.project.name
+            if project_name not in project_data:
+                project_data[project_name] = {
+                    'project': project_name,
+                    'tasks': []
+                }
+            project_data[project_name]['tasks'].append({
+                'task_name': task.name,
+                'status': task.status,
+                'assigned_to': f"{task.assigned_to.first_name} {task.assigned_to.last_name}" if task.assigned_to else "Unassigned",
+                'due_date': task.due_date.strftime('%d/%m/%Y') if task.due_date else 'No due date'
+            })
+
+        # Convert project data to a list for JSON response compatibility
+        data = list(project_data.values())
+        
+        return Response(data)
 
 class ProjectTaskReportView(APIView):
     permission_classes = [IsAuthenticated]

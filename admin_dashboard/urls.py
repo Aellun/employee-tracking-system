@@ -5,7 +5,8 @@ from .views import (
     EmployeeListView, EmployeeDetailView, TaskDetailView, TaskListView,
     LeaveBalanceReportView, LeaveRequestReportView, WorkHoursReportView, 
     ProjectTaskReportView, BillableHoursReportView, PerformanceMetricsReportView,
-    PerformanceListCreateView, PerformanceDetailView, WorkHoursListCreateView, WorkHoursDetailView
+    PerformanceListCreateView, PerformanceDetailView, WorkHoursListCreateView,
+    WorkHoursDetailView,ProjectListView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -16,9 +17,10 @@ urlpatterns = [
     path('api/employees/data/', EmployeeListView.as_view(), name='employee-list'),
 
     # Task URLs
-    path('api/tasks/<int:id>/', TaskDetailView.as_view(), name='task-detail'),
-    path('api/tasks/', TaskListView.as_view(), name='task-list'),
-
+    path('api/tasks/', TaskListView.as_view(), name='task-list'),  # URL for listing and creating tasks
+    path('api/tasks/<int:id>/', TaskDetailView.as_view(), name='task-detail'),  # URL for retrieving, updating, and deleting a specific task
+    path('api/projects/', ProjectListView.as_view(), name='project-list'),  # URL for listing projects
+    
     # Project URLs
     path('api/projects/', views.ProjectListCreateView.as_view(), name='project-list-create'),
     path('api/projects/', views.ProjectListCreateView.as_view(), name='project-list-create'),

@@ -4,7 +4,7 @@ import { CSVLink } from 'react-csv'; // For CSV download
 import * as XLSX from 'xlsx'; // For Excel download
 import jsPDF from 'jspdf'; // For PDF generation
 import 'jspdf-autotable'; // For PDF tables
-import { useAuth } from '../../AuthProvider'; // Import the AuthProvider
+import { useAuth } from '../../AuthProvider';
 import '../../css/LeaveRequestReport.css';
 
 const LeaveRequestReport = () => {

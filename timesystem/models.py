@@ -34,7 +34,8 @@ class Task(models.Model):
     due_date = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     notes = models.TextField(null=True, blank=True)  # For extension or status change notes
-    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
+    assigned_to = models.ForeignKey('Employee', on_delete=models.SET_NULL, null=True)
+    project  = models.ForeignKey('Project', null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name
