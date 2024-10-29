@@ -448,6 +448,8 @@ class TaskListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
+        print("Request data:", self.request.data)
+        print(serializer.validated_data)
         serializer.save()
 
 # Retrieve, Update, and Delete Task
