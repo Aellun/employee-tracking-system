@@ -1,31 +1,33 @@
 /* AdminHomePage.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
 /* General Styles */
-* {
+* .admin-home-page{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Arial', sans-serif;
+.admin-home-page .body {
+  font-family: 'Poppins', sans-serif;
   background-color: #f8f9fa;
   color: #333;
 }
 
-h1, h2, h3 {
-  margin-bottom: 16px;
+.admin-home-page .h1, h2, h3 {
+  margin-bottom: 10px;
 }
 
 /* Layout */
-.container {
+.admin-home-page .container {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
+  min-width: 100vw;
 }
 
 /* Navbar */
-.navbar {
+.admin-home-page .navbar {
   background-color: #191c24;
   color: white;
   padding: 1rem 2rem;
@@ -36,83 +38,84 @@ h1, h2, h3 {
   position: sticky;
   top: 0; 
   z-index: 100;
+  min-width: 100vw;
 }
-.navbar h1 {
-  font-size: 1.5rem;
+.admin-home-page .navbar h1 {
+  font-size: 1.0rem;
   font-weight: bold;
   color: white;
 }
 
-.navbar .user-info {
+.admin-home-page .navbar .user-info {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.navbar .user-info span {
+.admin-home-page .navbar .user-info span {
   font-size: 1rem;
 }
 
-.navbar .user-info a {
-  color: #AF1763;
+.admin-home-page .navbar .user-info a {
+  
+  color: #fff;
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
-.navbar .user-info a:hover {
-  color: #fff;
+.admin-home-page .navbar .user-info a:hover {
+  color: #AF1763;
 }
 
 /* Sidebar */
-.sidebar {
+.admin-home-page .sidebar {
   background-color: #ffffff;
-  width: 240px;
+  width: 280px;
   padding: 1rem;
   box-shadow: 4px 0 6px rgba(0, 0, 0, 0.1);
   position: sticky;
-  top: 0;
+  top: 10px;
   height: 100vh;
   border-right: 1px solid #e0e0e0;
 }
 
-.sidebar h2 {
-  font-size: 1.5rem;
+.admin-home-page .sidebar h2 {
+  font-size: 1.0rem;
   font-weight: 600;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
-.sidebar ul {
+.admin-home-page .sidebar ul {
   list-style-type: none;
 }
 
 .sidebar ul li {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.0rem;
 }
 
-.sidebar ul li a {
+.admin-home-page .sidebar ul li a {
   display: flex;
   align-items: center;
-  color: #555;
+  color: #0c0606;
   text-decoration: none;
   font-size: 1rem;
   transition: background-color 0.3s, color 0.3s;
   padding: 0.75rem 1rem;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
-.sidebar ul li a:hover {
-  background-color: #0D6EFD;
+.admin-home-page .sidebar ul li a:hover {
+  background-color: #7499cf;
   color: white;
 }
 
-.sidebar ul li a svg {
+.admin-home-page .sidebar ul li a svg {
   margin-right: 1rem;
 }
 
-.sidebar button {
-  background-color: #AB2E3C;
+.admin-home-page .sidebar button {
   color: white;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1.0rem;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
@@ -120,17 +123,41 @@ h1, h2, h3 {
   transition: background-color 0.3s ease;
 }
 
-.sidebar button:hover {
-  background-color: #AF1763;
+/* Sidebar Icon Colors */
+.icon-employees {
+  color: #0D6EFD; 
 }
+
+.icon-projects {
+  color: #198754;
+}
+
+.icon-reports {
+  color: #FFC107;
+}
+
+.icon-tasks {
+  color: #AF1763;
+}
+.icon-leaves {
+  color: #AB2E3C; 
+}
+
+.icon-clockin {
+  color: #0DCAF0;
+}
+.icon-clock {
+  color: #6c757d;
+}
+
 
 /* Main Content */
-.main-content {
+.admin-home-page .main-content {
   flex-grow: 1;
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
-.section {
+.admin-home-page .section {
   background-color: white;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
@@ -138,23 +165,23 @@ h1, h2, h3 {
   margin-bottom: 2rem;
 }
 
-.section h2 {
-  font-size: 1.8rem;
+.admin-home-page .section h2 {
+  font-size: 1.5rem;
   margin-bottom: 1rem;
 }
 
 /* Grid */
-.grid {
+.admin-home-page .grid {
   display: grid;
   gap: 1.5rem;
 }
 
-.grid-3 {
+.admin-home-page .grid-3 {
   grid-template-columns: repeat(3, 1fr);
 }
 
 /* Statistics Cards */
-.card {
+.admin-home-page .card {
   background-color: #fefefe;
   padding: 1.5rem;
   border-radius: 8px;
@@ -164,11 +191,11 @@ h1, h2, h3 {
   color: #333;
 }
 
-.card:hover {
+.admin-home-page .card:hover {
   transform: translateY(-5px);
 }
 /* Statistics Cards */
-.card {
+.admin-home-page .card {
   padding: 1.5rem;
   border-radius: 8px;
   text-align: center;
@@ -178,78 +205,78 @@ h1, h2, h3 {
 }
 
 /* Card for Total Employees */
-.card:nth-child(1) {
-  background-color: #0D6EFD; /* Primary Blue */
+.admin-home-page .card:nth-child(1) {
+  background-color: #5e7291; /* Primary Blue */
   color: white;
 }
 
 /* Card for Total Projects */
-.card:nth-child(2) {
+.admin-home-page .card:nth-child(2) {
   background-color: #198754; /* Green */
   color: white;
 }
 
 /* Card for Total Tasks */
-.card:nth-child(3) {
+.admin-home-page .card:nth-child(3) {
   background-color: #FFC107; /* Yellow */
   color: #191C24;
 }
 
 /* Card for Total Clock-Ins */
-.card:nth-child(4) {
+.admin-home-page .card:nth-child(4) {
   background-color: #AF1763; /* Primary Red */
   color: white;
 }
 
 /* Card for Total Leave Requests */
-.card:nth-child(5) {
+.admin-home-page .card:nth-child(5) {
   background-color: #AB2E3C; /* Dark Red */
   color: white;
 }
 
 /* Card for Leave Balance Overview */
-.card:nth-child(6) {
-  background-color: #0DCAF0; /* Light Blue */
+.admin-home-page .card:nth-child(6) {
+  background-color: #615a19; /* Light Blue */
   color: #191C24;
 }
 
-.card:hover {
+.admin-home-page .card:hover {
   transform: translateY(-5px);
 }
 
-.card .icon {
+.admin-home-page .card .icon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
 }
 
-.card .value {
+.admin-home-page .card .value {
   font-size: 2.5rem;
   font-weight: bold;
 }
 
-.card .label {
+.admin-home-page .card .label {
   font-size: 1rem;
 }
 
 /* Footer */
-.footer {
-  background-color: #191c24;
-  color: white;
+.admin-home-page .footer {
+  background-color: #474849;
+  color: rgb(15, 10, 10);
   text-align: center;
-  padding: 1.5rem;
+  padding: 0.5rem;
   font-size: 0.9rem;
   position: sticky;
   bottom: 0;
-  width: 100%;
+  min-width: 100vw;
 }
 
-.footer a {
-  color: #ccc;
+.admin-home-page .footer a {
+  color: #504f4f;
   text-decoration: none;
   margin: 0 0.5rem;
 }
 
-.footer a:hover {
+.admin-home-page .footer a:hover {
   color: white;
 }
 
@@ -259,13 +286,13 @@ h1, h2, h3 {
     grid-template-columns: repeat(1, 1fr);
   }
 
-  .sidebar {
+  .admin-home-page .sidebar {
     width: 100%;
     height: auto;
     position: relative;
   }
 
-  .main-content {
+  .admin-home-page .main-content {
     padding: 1rem;
   }
 }

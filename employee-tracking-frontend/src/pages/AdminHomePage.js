@@ -81,7 +81,7 @@ const AdminHomePage = () => {
   };
 
   return (
-    <div className="container">
+    <div className="admin-home-page container">
       {/* Navbar */}
       <header className="navbar">
         <h1>Employee Management System</h1>
@@ -93,53 +93,52 @@ const AdminHomePage = () => {
           </Link>
         </div>
       </header>
-
+  
       <div className="flex">
-        {/* Sidebar */}
-        <aside className="sidebar">
-          <h2>Admin Panel</h2>
-          <ul>
-            <li>
-              <Link to="/admin/employees">
-                <FaUserFriends /> Manage Employees
-              </Link>
-            </li>
-            <li>
-              <Link to="/admin/projects">
-                <FaProjectDiagram /> Manage Projects
-              </Link>
-            </li>
-            <li>
-            <Link to="/admin/reportspage">
-                <FaChartLine /> Reports
-              </Link>
-            </li>
-            <li>
-              <Link to="/admin/manage-tasks">
-                <FaTasks /> Manage Tasks
-              </Link>
-            </li>
-            <li>
-              <Link to="/admin/manage-leaves">
-                <FaCalendarAlt /> Manage Leaves
-              </Link>
-            </li>
-            <li>
-              <Link to="/admin/manage-clockin">
-                <FaCheckCircle /> Manage Clockin
-              </Link>
-            </li>
+  {/* Sidebar */}
+  <aside className="sidebar">
+    <ul>
+      <li>
+        <Link to="/admin/employees">
+          <FaUserFriends className="icon-employees" /> Manage Employees
+        </Link>
+      </li>
+      <li>
+        <Link to="/admin/projects">
+          <FaProjectDiagram className="icon-projects" /> Manage Projects
+        </Link>
+      </li>
+      <li>
+        <Link to="/admin/reportspage">
+          <FaChartLine className="icon-reports" /> Reports
+        </Link>
+      </li>
+      <li>
+        <Link to="/admin/manage-tasks">
+          <FaTasks className="icon-tasks" /> Manage Tasks
+        </Link>
+      </li>
+      <li>
+        <Link to="/admin/manage-leaves">
+          <FaCalendarAlt className="icon-leaves" /> Manage Leaves
+        </Link>
+      </li>
+      <li>
+        <Link to="/admin/manage-clockin">
+          <FaCheckCircle className="icon-clockin" /> Manage Clockin
+        </Link>
+      </li>
+      <li>
+        <Link to="/clockin">
+          <FaClock className="icon-clock" /> Clock In
+        </Link>
+      </li>
+    </ul>
+    <button onClick={handleLogout}>Logout</button>
+  </aside>
 
-            <li>
-              <Link to="/clockin">
-                <FaClock /> Clock In
-              </Link>
-            </li>
-            
-          </ul>
-          <button onClick={handleLogout}>Logout</button>
-        </aside>
 
+  
         {/* Main Content */}
         <main className="main-content">
           <section className="section">
@@ -162,20 +161,21 @@ const AdminHomePage = () => {
               </div>
             </div>
           </section>
-
+  
           <section className="section">
             <h2>Leave Balance Overview</h2>
             <Bar data={leaveBalanceData} />
           </section>
         </main>
       </div>
-
+  
       {/* Footer */}
       <footer className="footer">
         &copy; {new Date().getFullYear()} Admin Employee Management System. All rights reserved.
       </footer>
     </div>
   );
+  
 };
 
 export default AdminHomePage;
