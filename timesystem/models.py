@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 
 class Employee(models.Model):
     user = models.ForeignKey(User, related_name='employees', on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, related_name='created_employees', on_delete=models.CASCADE)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
@@ -12,6 +13,7 @@ class Employee(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
 
 class Project(models.Model):
     name = models.CharField(max_length=100)

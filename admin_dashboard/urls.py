@@ -13,7 +13,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 urlpatterns = [
     # Employee URLs
     path('api/employees/', views.UserListView.as_view(), name='user-list'),
-    path('api/employees/data/<int:employee_id>/', EmployeeDetailView.as_view(), name='employee-detail'),
+    path('api/employees/data/<int:pk>/', EmployeeDetailView.as_view(), name='employee-detail'),
     path('api/employees/data/', EmployeeListView.as_view(), name='employee-list'),
 
     # Task URLs
@@ -24,7 +24,6 @@ urlpatterns = [
     # Project URLs
     path('api/projects/', views.ProjectListCreateView.as_view(), name='project-list-create'),
     path('api/projects/', views.ProjectListCreateView.as_view(), name='project-list-create'),
-    path('api/projects/<int:pk>/', views.ProjectDetailView.as_view(), name='project-detail'),
 
     # Time Entry URLs
     path('api/time-entries/', views.TimeEntryListCreateView.as_view(), name='timeentry-list-create'),

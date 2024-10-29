@@ -35,17 +35,6 @@ from .serializers import (
 import logging
 
 logger = logging.getLogger(__name__)
-# --- List and create employees ---
-class EmployeeListCreateView(generics.ListCreateAPIView):
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
-    permission_classes = [IsAuthenticated]  # Only admins can create employees
-
-# --- Retrieve, update, and delete an employee ---
-class EmployeeDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
-    permission_classes = [IsAuthenticated]  # Only admins can update/delete employees
 
 # --- List and create projects ---
 class ProjectListCreateView(generics.ListCreateAPIView):
@@ -95,59 +84,61 @@ class ProjectDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class EmployeeListView(generics.ListCreateAPIView):
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
-
-def post(self, request):
-    if not request.user.is_staff:
-        return Response({'error': 'You do not have permission to create employees.'}, status=status.HTTP_403_FORBIDDEN)
-
-    serializer = EmployeeSerializer(data=request.data)
-    if serializer.is_valid():
-        try:
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except IntegrityError:
-            return Response({'error': 'User email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            # Capture any other unexpected exceptions
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
+# --- List and create employees ---
 @permission_classes([IsAuthenticated])
-class EmployeeDetailView(APIView):
-    def get_object(self, employee_id):
-        return get_object_or_404(Employee, id=employee_id)
+class EmployeeListView(APIView):
 
-    def get(self, request, employee_id):
-        employee = self.get_object(employee_id)
-        serializer = EmployeeSerializer(employee)
+    def get(self, request):
+        employees = Employee.objects.all()
+        serializer = EmployeeSerializer(employees, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, employee_id):
-        # Check if the user is an admin before allowing PUT
+    def post(self, request):
+        # Check if the user is an admin before allowing POST
+        if not request.user.is_staff:
+            return Response({'error': 'You do not have permission to create employees.'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Include the user in the employee data
+        data = request.data.copy()  # Make a copy of the incoming data
+        data['user'] = request.user.id  # Automatically assign the current user
+
+        serializer = EmployeeSerializer(data=data)  # Pass the modified data with user included
+        if serializer.is_valid():
+            employee = serializer.save(created_by=request.user)  # Save the new employee
+            return Response(EmployeeSerializer(employee).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# --- Retrieve, update, and delete an employee ---
+class EmployeeDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'pk'
+
+    def put(self, request, *args, **kwargs):
+        # Check if the user is an admin before allowing updates
         if not request.user.is_staff:
             return Response({'error': 'You do not have permission to update employees.'}, status=status.HTTP_403_FORBIDDEN)
 
-        employee = self.get_object(employee_id)
-        serializer = EmployeeSerializer(employee, data=request.data, partial=True)
+        # Get the employee instance to update
+        employee = self.get_object()
+
+        # Ensure the user field is not modified
+        request.data['user'] = employee.user.id  # Retain the current user ID
+
+        # Use the serializer to validate and save the updated employee data
+        serializer = self.get_serializer(employee, data=request.data, partial=True)  # Use partial=True for partial updates
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            updated_employee = serializer.save()  # Save the updated employee
+            return Response(EmployeeSerializer(updated_employee).data, status=status.HTTP_200_OK)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, employee_id):
-        # Check if the user is an admin before allowing DELETE
+    def delete(self, request, *args, **kwargs):
         if not request.user.is_staff:
             return Response({'error': 'You do not have permission to delete employees.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().delete(request, *args, **kwargs)
 
-        employee = self.get_object(employee_id)
-        employee.delete()
-        return Response({'message': 'Employee deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
-  
 
 
 
@@ -389,57 +380,7 @@ class LeaveRequestDetailView(APIView):
         leave_request.delete()
         return Response({'message': 'Leave request deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
     
-@permission_classes([IsAuthenticated])
-class EmployeeListView(APIView):
-    
-    def get(self, request):
-        print(request.headers)
-        employees = Employee.objects.all()
-        serializer = EmployeeSerializer(employees, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        # Check if the user is an admin before allowing POST
-        if not request.user.is_staff:
-            return Response({'error': 'You do not have permission to create employees.'}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = EmployeeSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-@permission_classes([IsAuthenticated])
-class EmployeeDetailView(APIView):
-    def get_object(self, employee_id):
-        return get_object_or_404(Employee, id=employee_id)
-
-    def get(self, request, employee_id):
-        employee = self.get_object(employee_id)
-        serializer = EmployeeSerializer(employee)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def put(self, request, employee_id):
-        # Check if the user is an admin before allowing PUT
-        if not request.user.is_staff:
-            return Response({'error': 'You do not have permission to update employees.'}, status=status.HTTP_403_FORBIDDEN)
-
-        employee = self.get_object(employee_id)
-        serializer = EmployeeSerializer(employee, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, employee_id):
-        # Check if the user is an admin before allowing DELETE
-        if not request.user.is_staff:
-            return Response({'error': 'You do not have permission to delete employees.'}, status=status.HTTP_403_FORBIDDEN)
-
-        employee = self.get_object(employee_id)
-        employee.delete()
-        return Response({'message': 'Employee deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
-  
 
 # List and Create Tasks
 class TaskListCreateView(generics.ListCreateAPIView):

@@ -14,7 +14,8 @@ class UserSerializer(serializers.ModelSerializer):
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
-        fields = '__all__'
+        fields = ['id', 'user', 'created_by', 'first_name', 'last_name', 'email', 'position']
+        read_only_fields = ['created_by']  # Prevent the client from setting this field
 
     def validate_email(self, value):
         # Check if the employee already exists and has a different ID
@@ -22,7 +23,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
             if Employee.objects.exclude(id=self.instance.id).filter(email=value).exists():
                 raise serializers.ValidationError("User email already exists.")
         else:
-            # This is for the creation case where self.instance is None
             if Employee.objects.filter(email=value).exists():
                 raise serializers.ValidationError("User email already exists.")
         return value
