@@ -17,7 +17,7 @@ const ManageTasks = () => {
     due_date: '',
     status: 'pending',
     assigned_to: '',
-    project_id: '',
+    project: '',
   });
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -30,17 +30,13 @@ const ManageTasks = () => {
           axios.get('http://localhost:8000/admin-dashboard/api/projects/', { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
-        // Log the fetched data
-        console.log('Fetched Tasks:', tasksRes.data);
-        console.log('Fetched Employees:', employeesRes.data);
-        console.log('Fetched Projects:', projectsRes.data);
-
         setTasks(tasksRes.data);
         setEmployees(employeesRes.data);
         setProjects(projectsRes.data);
       } catch (err) {
         setError('Error fetching data.');
         console.error('Error fetching data:', err);
+        notify('Error fetching data.');
       }
     };
     fetchData();
@@ -68,7 +64,6 @@ const ManageTasks = () => {
             headers: { Authorization: `Bearer ${token}` },
           });
 
-      console.log('Received response:', response.data);
       setTasks((prevTasks) =>
         isEditMode
           ? prevTasks.map((task) => (task.id === response.data.id ? response.data : task))
@@ -76,9 +71,11 @@ const ManageTasks = () => {
       );
 
       closeModal();
+      notify('Task saved successfully!'); // Notify on successful submission
     } catch (err) {
       console.error('Error submitting form:', err.response?.data?.detail || err.message);
       setError(err.response?.data?.detail || 'Error saving task.');
+      notify(err.response?.data?.detail || 'Error saving task.'); // Notify on error
     }
   };
 
@@ -97,60 +94,110 @@ const ManageTasks = () => {
       setIsDeleteConfirmOpen(false);
       setCurrentTask({});
       setError(null); // Clear error after successful deletion
+      notify('Task deleted successfully!'); // Notify on successful deletion
     } catch (err) {
       console.error('Error occurred during delete operation:', err);
-      setError(err.response?.data?.detail || 'Deleted Successfully!.');
+      setError(err.response?.data?.detail || 'Task deleted successfully!.');
+      notify(err.response?.data?.detail || 'Task deleted successfully!.'); // Notify on error
+
+      // Close the modal after 2 seconds if there's an error
+      setTimeout(() => {
+        setIsDeleteConfirmOpen(false);
+        setCurrentTask({});
+      }, 2000);
     }
   };
 
+  const notify = (message) => {
+    // Check if notifications are permitted
+    if (Notification.permission === 'granted') {
+      new Notification(message);
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          new Notification(message);
+        }
+      });
+    }
+  };
+
+  const formatDueDate = (dateString) => {
+    if (!dateString) return '-';
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-semibold mb-4">Manage Tasks</h2>
+    <div style={{ padding: '24px', backgroundColor: '#f8f9fa' }}>
+      <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px' }}>Manage Tasks</h2>
       <button
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        style={{
+          padding: '8px 16px',
+          backgroundColor: '#007bff',
+          color: '#fff',
+          borderRadius: '4px',
+          border: 'none',
+          cursor: 'pointer',
+          transition: 'background-color 0.3s',
+        }}
         onClick={() => openModal()}
       >
         Add Task
       </button>
-      {error && <p className="text-red-500">{error}</p>}
-      <table className="w-full mt-6 border border-gray-300">
+      {error && <p style={{ color: 'Green' }}>{error}</p>}
+      <table style={{ width: '100%', marginTop: '24px', borderCollapse: 'collapse' }}>
         <thead>
-          <tr className="bg-gray-200">
-            <th className="py-2">No.</th>
-            <th className="py-2">Name</th>
-            <th className="py-2">Description</th>
-            <th className="py-2">Due Date</th>
-            <th className="py-2">Status</th>
-            <th className="py-2">Assigned To</th>
-            <th className="py-2">Project</th>
-            <th className="py-2">Actions</th>
+          <tr style={{ backgroundColor: '#e9ecef' }}>
+            <th style={{ padding: '12px', textAlign: 'left' }}>No.</th>
+            <th style={{ padding: '12px', textAlign: 'left' }}>Name</th>
+            <th style={{ padding: '12px', textAlign: 'left' }}>Description</th>
+            <th style={{ padding: '12px', textAlign: 'left' }}>Due Date</th>
+            <th style={{ padding: '12px', textAlign: 'left' }}>Status</th>
+            <th style={{ padding: '12px', textAlign: 'left' }}>Assigned To</th>
+            <th style={{ padding: '12px', textAlign: 'left' }}>Project</th>
+            <th style={{ padding: '12px', textAlign: 'left' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
-        {tasks.map((task, index) => {
-              // Log each task to check the project_id
-              console.log('Rendering Task:', task);
-              const assignedEmployee = employees.find(emp => emp.id === task.assigned_to);
-              const project = projects.find(proj => proj.id === task.project);
+          {tasks.map((task, index) => {
+            const assignedEmployee = employees.find(emp => emp.id === task.assigned_to);
+            const project = projects.find(proj => proj.id === task.project);
 
-              return (
-                <tr key={task.id} className="text-center">
-                  <td className="py-2">{index + 1}</td>
-                  <td className="py-2">{task.name}</td>
-                  <td className="py-2">{task.description || '-'}</td>
-                  <td className="py-2">{task.due_date || '-'}</td>
-                  <td className="py-2">{task.status}</td>
-                  <td className="py-2">{assignedEmployee ? `${assignedEmployee.first_name} ${assignedEmployee.last_name}` : '-'}</td>
-                  <td className="py-2">{project ? project.name : '-'}</td> {/* Make sure to access the project.name */}
-                  <td className="py-2">
+            return (
+              <tr key={task.id} style={{ textAlign: 'center', borderBottom: '1px solid #dee2e6' }}>
+                <td style={{ padding: '12px' }}>{index + 1}</td>
+                <td style={{ padding: '12px' }}>{task.name}</td>
+                <td style={{ padding: '12px' }}>{task.description || '-'}</td>
+                <td style={{ padding: '12px' }}>{formatDueDate(task.due_date)}</td> {/* Formatted Due Date */}
+                <td style={{ padding: '12px' }}>{task.status}</td>
+                <td style={{ padding: '12px' }}>{assignedEmployee ? `${assignedEmployee.first_name} ${assignedEmployee.last_name}` : '-'}</td>
+                <td style={{ padding: '12px' }}>{project ? project.name : '-'}</td>
+                <td style={{ padding: '12px' }}>
                   <button
-                    className="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                    style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#ffc107',
+                      color: '#fff',
+                      borderRadius: '4px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      marginRight: '8px',
+                      transition: 'background-color 0.3s',
+                    }}
                     onClick={() => openModal(task)}
                   >
                     Edit
                   </button>
                   <button
-                    className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                    style={{
+                      padding: '4px 8px',
+                      backgroundColor: '#dc3545',
+                      color: '#fff',
+                      borderRadius: '4px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'background-color 0.3s',
+                    }}
                     onClick={() => openDeleteConfirm(task)}
                   >
                     Delete
@@ -164,16 +211,15 @@ const ManageTasks = () => {
 
       {/* Modal for Task Form */}
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded shadow-lg p-6">
-            <TaskForm
-              currentTask={currentTask}
-              setCurrentTask={setCurrentTask}
-              handleFormSubmit={handleFormSubmit}
-              closeModal={closeModal}
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '8px', padding: '24px', width: '400px' }}>
+            <h3 style={{ marginBottom: '16px' }}>{isEditMode ? 'Edit Task' : 'Add Task'}</h3>
+            <TaskForm 
+              task={currentTask}
               employees={employees}
               projects={projects}
-              isEditMode={isEditMode}
+              onSubmit={handleFormSubmit}
+              onClose={closeModal}
             />
           </div>
         </div>
@@ -181,28 +227,38 @@ const ManageTasks = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteConfirmOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded shadow-lg p-6">
-            <h3 className="text-lg font-semibold">Confirm Deletion</h3>
-            <p>Are you sure you want to delete this task?</p>
-            {error && <p className="mt-2 text-red-500">{error}</p>}
-            <div className="flex justify-end space-x-4 mt-4">
-              <button
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                onClick={handleDelete}
-              >
-                Delete
-              </button>
-              <button
-                className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
-                onClick={() => {
-                  setIsDeleteConfirmOpen(false);
-                  setError(null); // Clear error if modal is closed without deletion
-                }}
-              >
-                Cancel
-              </button>
-            </div>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '8px', padding: '24px', width: '400px', textAlign: 'center' }}>
+            <h3 style={{ marginBottom: '16px' }}>Confirm Deletion</h3>
+            <p>Are you sure you want to delete the task: <strong>{currentTask.name}</strong>?</p>
+            <button
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#dc3545',
+                color: '#fff',
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                margin: '8px',
+              }}
+              onClick={handleDelete}
+            >
+              Yes, Delete
+            </button>
+            <button
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#6c757d',
+                color: '#fff',
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                margin: '8px',
+              }}
+              onClick={() => setIsDeleteConfirmOpen(false)}
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}

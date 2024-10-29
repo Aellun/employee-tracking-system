@@ -12,7 +12,7 @@ const TaskForm = ({ currentTask, setCurrentTask, handleFormSubmit, closeModal, e
   const [feedbackMessage, setFeedbackMessage] = useState('');
   const [feedbackType, setFeedbackType] = useState(''); // 'success' or 'error'
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newTask = {
       name: taskName,
@@ -25,9 +25,9 @@ const TaskForm = ({ currentTask, setCurrentTask, handleFormSubmit, closeModal, e
 
     console.log('Form submitted', newTask);
     
-    // Simulate form submission and feedback
+    // Try to submit the task and provide feedback
     try {
-      handleFormSubmit(newTask); // Call the provided function to handle the new task
+      await handleFormSubmit(newTask); // Await the submission if it's a promise
       
       // Provide success feedback
       setFeedbackMessage('Task submitted successfully!');
@@ -42,7 +42,7 @@ const TaskForm = ({ currentTask, setCurrentTask, handleFormSubmit, closeModal, e
     setTimeout(() => {
       setCurrentTask({});
       closeModal();
-      setFeedbackMessage('');
+      setFeedbackMessage(''); // Clear feedback message
     }, 2000); // Feedback will show for 2 seconds
   };
 
@@ -164,7 +164,7 @@ const TaskForm = ({ currentTask, setCurrentTask, handleFormSubmit, closeModal, e
         <div className="flex justify-end space-x-4">
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-blue-700"
           >
             Save
           </button>
