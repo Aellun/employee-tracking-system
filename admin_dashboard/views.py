@@ -36,12 +36,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# --- List and create projects ---
-class ProjectListCreateView(generics.ListCreateAPIView):
-    queryset = Project.objects.all()
-    serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated]
-
 class ProjectListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -57,6 +51,7 @@ class ProjectListCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# View to manage a single project by ID
 class ProjectDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -65,6 +60,13 @@ class ProjectDetailView(APIView):
             return Project.objects.get(pk=pk)
         except Project.DoesNotExist:
             return None
+
+    def get(self, request, pk):
+        project = self.get_object(pk)
+        if project is None:
+            return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data)
 
     def put(self, request, pk):
         project = self.get_object(pk)
@@ -138,18 +140,6 @@ class EmployeeDetailView(generics.RetrieveUpdateDestroyAPIView):
         if not request.user.is_staff:
             return Response({'error': 'You do not have permission to delete employees.'}, status=status.HTTP_403_FORBIDDEN)
         return super().delete(request, *args, **kwargs)
-
-
-
-
-
-
-
-# --- Retrieve, update, and delete a project ---
-class ProjectDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Project.objects.all()
-    serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated]
 
 
 # --- List and create time entries ---
@@ -417,6 +407,19 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
 class ProjectListView(generics.ListAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        projects = Project.objects.all()
+        serializer = ProjectSerializer(projects, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = ProjectSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Fetch Users for Task Assignment

@@ -6,7 +6,7 @@ from .views import (
     LeaveBalanceReportView, LeaveRequestReportView, WorkHoursReportView, 
     ProjectTaskReportView, BillableHoursReportView, PerformanceMetricsReportView,
     PerformanceListCreateView, PerformanceDetailView, WorkHoursListCreateView,
-    WorkHoursDetailView,ProjectListView
+    WorkHoursDetailView,ProjectListView,ProjectDetailView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -22,8 +22,8 @@ urlpatterns = [
     path('api/projects/', ProjectListView.as_view(), name='project-list'),  # URL for listing projects
     
     # Project URLs
-    path('api/projects/', views.ProjectListCreateView.as_view(), name='project-list-create'),
-    path('api/projects/', views.ProjectListCreateView.as_view(), name='project-list-create'),
+    path('api/projects/', ProjectDetailView.as_view(), name='project-create'),
+    path('api/projects/<int:pk>/', ProjectDetailView.as_view(), name='project-detail'),
 
     # Time Entry URLs
     path('api/time-entries/', views.TimeEntryListCreateView.as_view(), name='timeentry-list-create'),

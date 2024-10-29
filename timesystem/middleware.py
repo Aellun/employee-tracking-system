@@ -71,3 +71,5 @@ class RequestResponseLoggingMiddleware(MiddlewareMixin):
             "traceback": traceback.format_exc(),
         }
         self.logger.error("Exception occurred: " + json.dumps(error_log_entry))
+
+    
