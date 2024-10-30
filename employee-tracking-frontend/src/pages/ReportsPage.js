@@ -52,7 +52,7 @@ const ReportsPage = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="reports-page">
       {/* Navbar */}
       <header className="bg-gray-900 text-white py-4 text-center">
         <h1 className="text-2xl">Reports</h1>
@@ -66,15 +66,15 @@ const ReportsPage = () => {
             <li><Link to="/reports/leaves-balance" className="block p-2 rounded hover:bg-gray-200">Leave Balance Report</Link></li>
             <li><Link to="/reports/leaves-request" className="block p-2 rounded hover:bg-gray-200">Leave Request Report</Link></li>
             <li><Link to="/reports/work-hours" className="block p-2 rounded hover:bg-gray-200">Work Hours Report</Link></li>
-            <li><Link to="/reports/project-task" className="block p-2 rounded hover:bg-gray-200">Project Task Report</Link></li>
+            {/* <li><Link to="/reports/project-task" className="block p-2 rounded hover:bg-gray-200">Project Task Report</Link></li> */}
             {/* <li><Link to="/reports/billable-hours" className="block p-2 rounded hover:bg-gray-200">Billable Hours Report</Link></li> */}
-            <li><Link to="/reports/performance-metrics" className="block p-2 rounded hover:bg-gray-200">Performance Metrics Report</Link></li>
+            {/* <li><Link to="/reports/performance-metrics" className="block p-2 rounded hover:bg-gray-200">Performance Metrics Report</Link></li> */}
           </ul>
         </aside>
 
         {/* Main Content */}
         <main className="flex-1 p-6 overflow-y-auto bg-white">
-          <h2 className="text-2xl mb-6">Visualizations</h2>
+          {/* <h2 className="text-2xl mb-6">Visualizations</h2> */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Task Completion Rate Pie Chart */}
@@ -108,7 +108,7 @@ const ReportsPage = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="value" fill="#8884d8" />
+                <Bar dataKey="value" fill="blue" />
               </BarChart>
             </div>
 
@@ -127,24 +127,6 @@ const ReportsPage = () => {
               </BarChart>
             </div>
 
-            {/* Leave Request Rate Pie Chart */}
-            {/* <div className="mb-10 text-center bg-gray-50 p-4 rounded shadow">
-              <h3 className="text-lg font-semibold mb-4">Leave Request Rate</h3>
-              <PieChart width={400} height={400}>
-                <Pie
-                  data={[
-                    { name: 'Leave Requests', value: visualizationData.leave_request_rate },
-                    { name: 'Other', value: 100 - visualizationData.leave_request_rate },
-                  ]}
-                  dataKey="value"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#ffc658"
-                />
-                <Tooltip />
-              </PieChart>
-            </div> */}
           </div>
         </main>
       </div>
