@@ -3,6 +3,7 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from datetime import datetime, timedelta
+from rest_framework.exceptions import NotFound
 from django.http import JsonResponse
 from django.utils.dateparse import parse_datetime
 from rest_framework.response import Response
@@ -345,14 +346,14 @@ class LeaveRequestListView(APIView):
 class LeaveRequestDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_object(self, leaveId):
+    def get_object(self, leave_id):
         try:
-            return LeaveRequest.objects.get(id=leaveId)
+            return LeaveRequest.objects.get(id=leave_id)
         except LeaveRequest.DoesNotExist:
             return None
 
-    def put(self, request, leave_id, *args, **kwargs):
-        leave_request = self.get_object(leave_id)
+    def put(self, request, leaveId, *args, **kwargs):  # Match the URL path parameter 'leaveId'
+        leave_request = self.get_object(leaveId)  # Pass leaveId to get_object
         if not leave_request:
             return Response({'error': 'Leave request not found.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -362,14 +363,15 @@ class LeaveRequestDetailView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, leaveId):
-        leave_request = self.get_object(leaveId)
+    def delete(self, request, *args, **kwargs):
+        leave_id = kwargs.get('leaveId')  # Retrieve leaveId from kwargs
+        leave_request = self.get_object(leave_id)
         if not leave_request:
             return Response({'error': 'Leave request not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         leave_request.delete()
         return Response({'message': 'Leave request deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
-    
+
 
 
 # List and Create Tasks

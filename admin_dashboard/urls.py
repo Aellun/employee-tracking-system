@@ -40,7 +40,8 @@ urlpatterns = [
 
     # Leave URLs
     path('api/leaves/', LeaveRequestListView.as_view(), name='leave-request-list'),
-    path('api/leaves/<int:leave_id>/', LeaveRequestDetailView.as_view(), name='leave-request-detail'),
+    path('api/leaves/<int:leaveId>/', LeaveRequestDetailView.as_view(), name='leave-request-detail'),
+    
 
     # JWT Token URLs
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

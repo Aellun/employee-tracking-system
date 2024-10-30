@@ -13,7 +13,6 @@ const ManageLeaves = () => {
   const [endDate, setEndDate] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  // Fetch leave requests
   useEffect(() => {
     const fetchLeaveRequests = async () => {
       try {
@@ -21,21 +20,18 @@ const ManageLeaves = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setLeaveRequests(response.data);
-        setFilteredLeaves(response.data); // Initialize filtered leaves
+        setFilteredLeaves(response.data);
       } catch (err) {
         setError('Error fetching leave requests.');
       } finally {
         setLoading(false);
       }
     };
-
     fetchLeaveRequests();
   }, [token]);
 
-  // Filter leave requests based on input criteria
   const handleFilter = () => {
     let filtered = leaveRequests;
-
     if (employeeName) {
       filtered = filtered.filter(leave => 
         leave.employee_name.toLowerCase().includes(employeeName.toLowerCase())
@@ -50,11 +46,9 @@ const ManageLeaves = () => {
     if (statusFilter) {
       filtered = filtered.filter(leave => leave.status === statusFilter);
     }
-
     setFilteredLeaves(filtered);
   };
 
-  // Update leave status
   const handleUpdateLeaveStatus = async (leaveId, status) => {
     if (window.confirm(`Are you sure you want to ${status.toLowerCase()} this leave request?`)) {
       try {
@@ -74,7 +68,6 @@ const ManageLeaves = () => {
     }
   };
 
-  // Delete a leave request
   const handleDeleteLeave = async (leaveId) => {
     if (window.confirm('Are you sure you want to delete this leave request?')) {
       try {
@@ -90,83 +83,82 @@ const ManageLeaves = () => {
     }
   };
 
-  if (loading) return <p className="text-center text-lg">Loading leave requests...</p>;
+  if (loading) return <p style={{ textAlign: 'center', fontSize: '18px' }}>Loading leave requests...</p>;
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold mb-4">Manage Leaves</h2>
+    <div style={{ padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
+      <h2 style={{ fontSize: '24px', fontWeight: '600', marginBottom: '20px' }}>Manage Leaves</h2>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && <p style={{ color: '#e53e3e' }}>{error}</p>}
 
-      {/* Filter Inputs */}
-      <div className="flex space-x-4 mb-4">
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
         <input
           type="text"
           placeholder="Employee Name"
           value={employeeName}
           onChange={e => setEmployeeName(e.target.value)}
-          className="p-2 border rounded"
+          style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
         />
         <input
           type="date"
           value={startDate}
           onChange={e => setStartDate(e.target.value)}
-          className="p-2 border rounded"
+          style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
         />
         <input
           type="date"
           value={endDate}
           onChange={e => setEndDate(e.target.value)}
-          className="p-2 border rounded"
+          style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
         />
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
-          className="p-2 border rounded"
+          style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
         >
           <option value="">All Statuses</option>
           <option value="PENDING">Pending</option>
           <option value="APPROVED">Approved</option>
           <option value="REJECTED">Rejected</option>
         </select>
-        <button onClick={handleFilter} className="p-2 bg-blue-500 text-white rounded">Filter</button>
+        <button onClick={handleFilter} style={{ padding: '8px', backgroundColor: '#1d72b8', color: '#fff', borderRadius: '4px', cursor: 'pointer' }}>Filter</button>
       </div>
 
-      <table className="min-w-full border-collapse border border-gray-300 mt-4">
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
         <thead>
-          <tr className="bg-gray-100 text-gray-700">
-            <th className="border border-gray-300 px-4 py-2">Employee Name</th>
-            <th className="border border-gray-300 px-4 py-2">Email</th>
-            <th className="border border-gray-300 px-4 py-2">Leave Type</th>
-            <th className="border border-gray-300 px-4 py-2">Start Date</th>
-            <th className="border border-gray-300 px-4 py-2">End Date</th>
-            <th className="border border-gray-300 px-4 py-2">Reason</th>
-            <th className="border border-gray-300 px-4 py-2">Status</th>
-            <th className="border border-gray-300 px-4 py-2">Actions</th>
+          <tr style={{ backgroundColor: '#e2e8f0', color: '#4a5568' }}>
+            <th style={{ border: '1px solid #e2e8f0', padding: '12px' }}>Employee Name</th>
+            <th style={{ border: '1px solid #e2e8f0', padding: '12px' }}>Email</th>
+            <th style={{ border: '1px solid #e2e8f0', padding: '12px' }}>Leave Type</th>
+            <th style={{ border: '1px solid #e2e8f0', padding: '12px' }}>Start Date</th>
+            <th style={{ border: '1px solid #e2e8f0', padding: '12px' }}>End Date</th>
+            <th style={{ border: '1px solid #e2e8f0', padding: '12px' }}>Reason</th>
+            <th style={{ border: '1px solid #e2e8f0', padding: '12px' }}>Status</th>
+            <th style={{ border: '1px solid #e2e8f0', padding: '12px' }}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {filteredLeaves.map((leave) => (
-            <tr key={leave.id} className="hover:bg-gray-50">
-              <td className="border border-gray-300 px-4 py-2">{leave.employee_name}</td>
-              <td className="border border-gray-300 px-4 py-2">{leave.employee_email}</td>
-              <td className="border border-gray-300 px-4 py-2">{leave.leave_type}</td>
-              <td className="border border-gray-300 px-4 py-2">{leave.start_date}</td>
-              <td className="border border-gray-300 px-4 py-2">{leave.end_date}</td>
-              <td className="border border-gray-300 px-4 py-2">{leave.reason}</td>
-              <td className="border border-gray-300 px-4 py-2">{leave.status}</td>
-              <td className="border border-gray-300 px-4 py-2">
+            <tr key={leave.id} style={{ backgroundColor: leave.status === 'PENDING' ? '#fefcbf' : 'white', cursor: 'pointer' }}>
+              <td style={{ border: '1px solid #e2e8f0', padding: '12px' }}>{leave.employee_name}</td>
+              <td style={{ border: '1px solid #e2e8f0', padding: '12px' }}>{leave.employee_email}</td>
+              <td style={{ border: '1px solid #e2e8f0', padding: '12px' }}>{leave.leave_type}</td>
+              <td style={{ border: '1px solid #e2e8f0', padding: '12px' }}>{leave.start_date}</td>
+              <td style={{ border: '1px solid #e2e8f0', padding: '12px' }}>{leave.end_date}</td>
+              <td style={{ border: '1px solid #e2e8f0', padding: '12px' }}>{leave.reason}</td>
+              <td style={{ border: '1px solid #e2e8f0', padding: '12px' }}>{leave.status}</td>
+              <td style={{ border: '1px solid #e2e8f0', padding: '12px' }}>
                 {leave.status === 'PENDING' && (
                   <>
                     <button 
                       onClick={() => handleUpdateLeaveStatus(leave.id, 'APPROVED')}
-                      className="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600"
+                      style={{ backgroundColor: '#38a169', color: '#fff', padding: '8px', borderRadius: '4px', marginRight: '8px', cursor: 'pointer' }}
                     >
                       Approve
                     </button>
                     <button 
                       onClick={() => handleUpdateLeaveStatus(leave.id, 'REJECTED')}
-                      className="bg-red-500 text-white px-3 py-1 rounded mr-2 hover:bg-red-600"
+                      style={{ backgroundColor: '#e53e3e', color: '#fff', padding: '8px', borderRadius: '4px', marginRight: '8px', cursor: 'pointer' }}
                     >
                       Reject
                     </button>
@@ -174,7 +166,7 @@ const ManageLeaves = () => {
                 )}
                 <button 
                   onClick={() => handleDeleteLeave(leave.id)}
-                  className="bg-gray-300 text-gray-800 px-3 py-1 rounded hover:bg-gray-400"
+                  style={{ backgroundColor: '#a0aec0', color: '#2d3748', padding: '8px', borderRadius: '4px', cursor: 'pointer' }}
                 >
                   Delete
                 </button>
