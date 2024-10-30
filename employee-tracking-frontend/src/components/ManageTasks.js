@@ -215,12 +215,14 @@ const ManageTasks = () => {
           <div style={{ backgroundColor: '#fff', borderRadius: '8px', padding: '24px', width: '400px' }}>
             <h3 style={{ marginBottom: '16px' }}>{isEditMode ? 'Edit Task' : 'Add Task'}</h3>
             <TaskForm 
-              task={currentTask}
+              currentTask={currentTask} 
+              setCurrentTask={setCurrentTask}
               employees={employees}
               projects={projects}
               onSubmit={handleFormSubmit}
               onClose={closeModal}
             />
+
           </div>
         </div>
       )}

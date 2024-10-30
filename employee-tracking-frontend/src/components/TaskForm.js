@@ -1,16 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const TaskForm = ({ currentTask, setCurrentTask, handleFormSubmit, closeModal, employees, projects, isEditMode }) => {
-  const [taskName, setTaskName] = useState(currentTask.name || '');
-  const [taskDescription, setTaskDescription] = useState(currentTask.description || '');
-  const [dueDate, setDueDate] = useState(currentTask.due_date || '');
-  const [status, setStatus] = useState(currentTask.status || 'pending');
-  const [assignedTo, setAssignedTo] = useState(currentTask.assigned_to || '');
-  const [project, setProject] = useState(currentTask.project || '');
-  
-  // New state for feedback message
+const TaskForm = ({ currentTask, setCurrentTask, handleFormSubmit, onClose, employees, projects, isEditMode }) => {
+  const [taskName, setTaskName] = useState('');
+  const [taskDescription, setTaskDescription] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [status, setStatus] = useState('pending');
+  const [assignedTo, setAssignedTo] = useState('');
+  const [project, setProject] = useState('');
+
   const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [feedbackType, setFeedbackType] = useState(''); // 'success' or 'error'
+  const [feedbackType, setFeedbackType] = useState('');
+
+  // Log the currentTask prop
+  useEffect(() => {
+    console.log('Current Task:', currentTask);
+    if (currentTask) {
+      setTaskName(currentTask.name || '');
+      setTaskDescription(currentTask.description || '');
+      setDueDate(currentTask.due_date || '');
+      setStatus(currentTask.status || 'pending');
+      setAssignedTo(currentTask.assigned_to || '');
+      setProject(currentTask.project || '');
+    }
+  }, [currentTask]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,60 +30,58 @@ const TaskForm = ({ currentTask, setCurrentTask, handleFormSubmit, closeModal, e
       name: taskName,
       description: taskDescription,
       due_date: dueDate,
-      status: status,
+      status,
       assigned_to: assignedTo,
-      project: project,
+      project,
     };
 
-    console.log('Form submitted', newTask);
-    
-    // Try to submit the task and provide feedback
+    console.log('Submitting Task:', newTask);
+
     try {
-      await handleFormSubmit(newTask); // Await the submission if it's a promise
-      
-      // Provide success feedback
+      await handleFormSubmit(newTask);
       setFeedbackMessage('Task submitted successfully!');
       setFeedbackType('success');
+
+      setTimeout(() => {
+        setFeedbackMessage('');
+        onClose();
+        setCurrentTask({}); // Clear the current task after submission
+      }, 2000);
     } catch (error) {
-      // Provide error feedback
+      console.error('Error during form submission:', error);
       setFeedbackMessage('Failed to submit task. Please try again.');
       setFeedbackType('error');
+      setTimeout(() => setFeedbackMessage(''), 3000); // Clear error message after 3 seconds
     }
-
-    // Reset the form and close the modal after a short delay
-    setTimeout(() => {
-      setCurrentTask({});
-      closeModal();
-      setFeedbackMessage(''); // Clear feedback message
-    }, 2000); // Feedback will show for 2 seconds
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    switch(name) {
+    console.log(`Input changed: ${name} = ${value}`);
+    switch (name) {
       case 'taskName':
         setTaskName(value);
-        setCurrentTask(prevState => ({ ...prevState, name: value }));
+        setCurrentTask((prevState) => ({ ...prevState, name: value }));
         break;
       case 'taskDescription':
         setTaskDescription(value);
-        setCurrentTask(prevState => ({ ...prevState, description: value }));
+        setCurrentTask((prevState) => ({ ...prevState, description: value }));
         break;
       case 'dueDate':
         setDueDate(value);
-        setCurrentTask(prevState => ({ ...prevState, due_date: value }));
+        setCurrentTask((prevState) => ({ ...prevState, due_date: value }));
         break;
       case 'status':
         setStatus(value);
-        setCurrentTask(prevState => ({ ...prevState, status: value }));
+        setCurrentTask((prevState) => ({ ...prevState, status: value }));
         break;
       case 'assignedTo':
         setAssignedTo(value);
-        setCurrentTask(prevState => ({ ...prevState, assigned_to: value }));
+        setCurrentTask((prevState) => ({ ...prevState, assigned_to: value }));
         break;
       case 'project':
         setProject(value);
-        setCurrentTask(prevState => ({ ...prevState, project: value }));
+        setCurrentTask((prevState) => ({ ...prevState, project: value }));
         break;
       default:
         console.log('Unknown input field:', name);
@@ -83,7 +93,6 @@ const TaskForm = ({ currentTask, setCurrentTask, handleFormSubmit, closeModal, e
       <form onSubmit={handleSubmit} style={formStyle}>
         <h3 className="text-lg font-semibold mb-4">{isEditMode ? 'Edit Task' : 'Add Task'}</h3>
 
-        {/* Feedback Message */}
         {feedbackMessage && (
           <div className={`mb-4 text-center ${feedbackType === 'success' ? 'text-green-600' : 'text-red-600'}`}>
             {feedbackMessage}
@@ -112,7 +121,7 @@ const TaskForm = ({ currentTask, setCurrentTask, handleFormSubmit, closeModal, e
           type="date"
           name="dueDate"
           className="w-full px-3 py-2 border rounded"
-          value={dueDate || ''}
+          value={dueDate}
           onChange={handleInputChange}
           required
           min={new Date().toISOString().split('T')[0]}
@@ -172,9 +181,9 @@ const TaskForm = ({ currentTask, setCurrentTask, handleFormSubmit, closeModal, e
             type="button"
             className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
             onClick={() => {
-              closeModal();
-              setCurrentTask({}); // Reset the form on close
-              setFeedbackMessage(''); // Clear feedback message on close
+              onClose();
+              setCurrentTask({});
+              setFeedbackMessage('');
             }}
           >
             Cancel
@@ -185,18 +194,18 @@ const TaskForm = ({ currentTask, setCurrentTask, handleFormSubmit, closeModal, e
   );
 };
 
-// Inline styles for the overlay and form
+// Inline styles
 const overlayStyle = {
   position: 'fixed',
   top: 0,
   left: 0,
   right: 0,
   bottom: 0,
-  backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black background
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-  zIndex: 1000, // Ensure it appears on top of other elements
+  zIndex: 1000,
 };
 
 const formStyle = {
@@ -204,7 +213,7 @@ const formStyle = {
   borderRadius: '8px',
   padding: '20px',
   boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-  width: '400px', // Adjust width as necessary
+  width: '400px',
 };
 
 export default TaskForm;
