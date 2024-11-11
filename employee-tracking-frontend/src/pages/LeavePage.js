@@ -5,6 +5,8 @@ import LeaveBalance from '../components/LeaveBalance';
 import LeaveHistory from '../components/LeaveHistory';
 import HRContactInfo from '../components/HRContactInfo';
 import PoliciesAndGuidelines from '../components/PoliciesAndGuidelines';
+import '../css/LeavePage.css';
+
 
 const LeavePage = () => {
     const [activeComponent, setActiveComponent] = useState(['leave-balance', 'policies-guidelines', 'hr-contact']);

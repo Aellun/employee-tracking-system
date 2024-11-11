@@ -5,9 +5,11 @@ import { useAuth } from '../AuthProvider';
 
 const ManageEmployees = () => {
   const [employees, setEmployees] = useState([]);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const { token } = useAuth();
 
   useEffect(() => {
@@ -22,6 +24,7 @@ const ManageEmployees = () => {
         },
       });
       setEmployees(response.data);
+      setFilteredEmployees(response.data); // Initialize filtered list to full list
     } catch (error) {
       console.error('Error fetching employees', error);
     }
@@ -54,54 +57,110 @@ const ManageEmployees = () => {
     });
   };
 
-  const handleDeleteEmployee = (id) => {
-    axios.delete(`http://localhost:8000/admin-dashboard/api/employees/data/${id}/`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    .then(() => fetchEmployees())
-    .catch(error => console.error('Error deleting employee', error));
-    setShowDeleteModal(false);
+  const handleDeleteEmployee = async () => {
+    try {
+      await axios.delete(`http://localhost:8000/admin-dashboard/api/employees/data/${selectedEmployee.id}/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      fetchEmployees();
+      setShowDeleteModal(false);
+      setSelectedEmployee(null);
+    } catch (error) {
+      console.error('Error deleting employee', error);
+    }
+  };
+
+  const handleSearch = () => {
+    const lowerCaseTerm = searchTerm.toLowerCase();
+    const results = employees.filter(employee =>
+      employee.first_name.toLowerCase().includes(lowerCaseTerm) ||
+      employee.last_name.toLowerCase().includes(lowerCaseTerm) ||
+      employee.email.toLowerCase().includes(lowerCaseTerm)
+    );
+    setFilteredEmployees(results);
   };
 
   return (
-    <div style={{ maxWidth: '950px', margin: 'auto', padding: '20px' }}>
-      <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '20px', color: '#333' }}>Manage Employees</h2>
+    <div style={{ maxWidth: '950px', margin: 'auto', padding: '20px', fontFamily: 'Arial, sans-serif', color: '#333' }}>
+      <h2 style={{ fontSize: '26px', fontWeight: '600', marginBottom: '20px', color: '#333' }}>Manage Employees</h2>
+
+      {/* Search Input and Button */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <input
+          type="text"
+          placeholder="Search by name or email"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ padding: '10px', width: '300px', borderRadius: '8px', border: '1px solid #ccc' }}
+        />
+        <button
+          onClick={handleSearch}
+          style={{ backgroundColor: '#007BFF', color: 'white', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', border: 'none', transition: 'background 0.3s' }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#0056b3'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = '#007BFF'}
+        >
+          Search
+        </button>
+        <button
+          onClick={() => {
+            setFilteredEmployees(employees);
+            setSearchTerm('');
+          }}
+          style={{ backgroundColor: '#6c757d', color: 'white', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', border: 'none', transition: 'background 0.3s' }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#5a6268'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = '#6c757d'}
+        >
+          Reset
+        </button>
+      </div>
+
       <button
         onClick={() => setShowModal(true)}
-        style={{ backgroundColor: '#007BFF', color: 'white', padding: '10px 15px', borderRadius: '5px', cursor: 'pointer' }}
+        style={{
+          backgroundColor: '#007BFF',
+          color: 'white',
+          padding: '5px 10px',
+          fontSize: '18px',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          border: 'none',
+          transition: 'background 0.3s',
+          width: '200px',
+        }}
+        onMouseEnter={(e) => (e.target.style.backgroundColor = '#0056b3')}
+        onMouseLeave={(e) => (e.target.style.backgroundColor = '#007BFF')}
       >
         Add Employee
       </button>
 
       <div style={{ marginTop: '20px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', backgroundColor: '#FFF', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', borderRadius: '5px' }}>
+        <table style={{ width: '100%', backgroundColor: '#FFF', boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)', borderRadius: '8px', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ backgroundColor: '#F2F2F2' }}>
-              <th style={{ padding: '10px' }}>ID</th>
-              <th style={{ padding: '10px' }}>First Name</th>
-              <th style={{ padding: '10px' }}>Last Name</th>
-              <th style={{ padding: '10px' }}>Email</th>
-              <th style={{ padding: '10px' }}>Position</th>
-              <th style={{ padding: '10px' }}>Actions</th>
+            <tr style={{ backgroundColor: '#f7f8fa', textAlign: 'left', color: '#555' }}>
+              {['ID', 'First Name', 'Last Name', 'Email', 'Position', 'Actions'].map((header) => (
+                <th key={header} style={{ padding: '12px', fontSize: '16px', fontWeight: '500' }}>{header}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {employees.map(employee => (
-              <tr key={employee.id} style={{ backgroundColor: '#FFF' }}>
-                <td style={{ padding: '10px', border: '1px solid #EEE' }}>{employee.id}</td>
-                <td style={{ padding: '10px', border: '1px solid #EEE' }}>{employee.first_name}</td>
-                <td style={{ padding: '10px', border: '1px solid #EEE' }}>{employee.last_name}</td>
-                <td style={{ padding: '10px', border: '1px solid #EEE' }}>{employee.email}</td>
-                <td style={{ padding: '10px', border: '1px solid #EEE' }}>{employee.position}</td>
-                <td style={{ padding: '10px', border: '1px solid #EEE' }}>
+            {filteredEmployees.map(employee => (
+              <tr key={employee.id} style={{ backgroundColor: '#FFF', borderBottom: '1px solid #E0E0E0' }}>
+                <td style={{ padding: '12px' }}>{employee.id}</td>
+                <td style={{ padding: '12px' }}>{employee.first_name}</td>
+                <td style={{ padding: '12px' }}>{employee.last_name}</td>
+                <td style={{ padding: '12px' }}>{employee.email}</td>
+                <td style={{ padding: '12px' }}>{employee.position}</td>
+                <td style={{ padding: '12px', display: 'flex', gap: '10px' }}>
                   <button
                     onClick={() => {
                       setSelectedEmployee(employee);
                       setShowModal(true);
                     }}
-                    style={{ backgroundColor: 'grey', color: 'white', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', marginRight: '5px' }}
+                    style={{ backgroundColor: '#6c757d', color: 'white', padding: '6px 12px', borderRadius: '5px', cursor: 'pointer', border: 'none', transition: 'background 0.3s' }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = '#5a6268'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = '#6c757d'}
                   >
                     Edit
                   </button>
@@ -123,20 +182,18 @@ const ManageEmployees = () => {
 
       {/* Modal for Add/Edit */}
       {showModal && (
-        <div style={{ position: 'fixed', top: '0', left: '0', right: '0', bottom: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)', zIndex: 1000 }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>
-              {selectedEmployee ? 'Edit Employee' : 'Add Employee'}
-            </h3>
+        <div style={{ position: 'fixed', inset: '0', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)', minWidth: '300px', zIndex: 1000 }}>
+            <h3 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '15px', color: '#333' }}>{selectedEmployee ? 'Edit Employee' : 'Add Employee'}</h3>
             <EmployeeForm
               employee={selectedEmployee}
               onSubmit={handleCreateOrUpdateEmployee}
-              onClose={() => setShowModal(false)} // Pass onClose function
+              onClose={() => setShowModal(false)}
             />
-            <div style={{ textAlign: 'right', marginTop: '15px' }}>
+            <div style={{ textAlign: 'right', marginTop: '20px' }}>
               <button
                 onClick={() => setShowModal(false)}
-                style={{ backgroundColor: '#6C757D', color: 'white', padding: '8px 16px', borderRadius: '5px', cursor: 'pointer' }}
+                style={{ backgroundColor: '#dc3545', color: 'white', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', border: 'none' }}
               >
                 Cancel
               </button>
@@ -147,22 +204,22 @@ const ManageEmployees = () => {
 
       {/* Modal for Delete Confirmation */}
       {showDeleteModal && (
-        <div style={{ position: 'fixed', top: '0', left: '0', right: '0', bottom: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)', zIndex: 1000 }}>
-            <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px' }}>Confirm Delete</h3>
-            <p style={{ marginBottom: '15px' }}>Are you sure you want to delete {selectedEmployee?.first_name}?</p>
-            <div style={{ textAlign: 'right' }}>
+        <div style={{ position: 'fixed', inset: '0', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)', minWidth: '300px', zIndex: 1000 }}>
+            <h3 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '15px', color: '#333' }}>Confirm Delete</h3>
+            <p>Are you sure you want to delete {selectedEmployee?.first_name} {selectedEmployee?.last_name}?</p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
               <button
-                onClick={() => setShowDeleteModal(false)}
-                style={{ backgroundColor: '#6C757D', color: 'white', padding: '8px 16px', borderRadius: '5px', cursor: 'pointer', marginRight: '10px' }}
+                onClick={handleDeleteEmployee}
+                style={{ backgroundColor: '#DC3545', color: 'white', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', border: 'none' }}
               >
-                Cancel
+                Yes, Delete
               </button>
               <button
-                onClick={() => handleDeleteEmployee(selectedEmployee.id)}
-                style={{ backgroundColor: '#DC3545', color: 'white', padding: '8px 16px', borderRadius: '5px', cursor: 'pointer' }}
+                onClick={() => setShowDeleteModal(false)}
+                style={{ backgroundColor: '#6c757d', color: 'white', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', border: 'none' }}
               >
-                Delete
+                Cancel
               </button>
             </div>
           </div>
