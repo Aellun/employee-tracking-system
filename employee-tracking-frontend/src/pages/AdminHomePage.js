@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthProvider';
-import { FaUser, FaCog, FaUserFriends,FaCheckCircle, FaProjectDiagram, FaChartLine, FaTasks, FaCalendarAlt, FaClock } from 'react-icons/fa';
+import { FaUser, FaSignOutAlt , FaCog, FaUserFriends,FaCheckCircle, FaProjectDiagram, FaChartLine, FaTasks, FaCalendarAlt, FaClock } from 'react-icons/fa';
 import { Bar } from 'react-chartjs-2';
 import axios from 'axios';
 import {
@@ -96,46 +96,51 @@ const AdminHomePage = () => {
   
       <div className="flex">
   {/* Sidebar */}
-  <aside className="sidebar">
-    <ul>
-      <li>
-        <Link to="/admin/employees">
-          <FaUserFriends className="icon-employees" /> Manage Employees
-        </Link>
-      </li>
-      <li>
-        <Link to="/admin/projects">
-          <FaProjectDiagram className="icon-projects" /> Manage Projects
-        </Link>
-      </li>
-      <li>
-        <Link to="/admin/reportspage">
-          <FaChartLine className="icon-reports" /> Reports
-        </Link>
-      </li>
-      <li>
-        <Link to="/admin/manage-tasks">
-          <FaTasks className="icon-tasks" /> Manage Tasks
-        </Link>
-      </li>
-      <li>
-        <Link to="/admin/manage-leaves">
-          <FaCalendarAlt className="icon-leaves" /> Manage Leaves
-        </Link>
-      </li>
-      <li>
-        <Link to="/admin/manage-clockin">
-          <FaCheckCircle className="icon-clockin" /> Manage Clockin
-        </Link>
-      </li>
-      <li>
-        <Link to="/clockin">
-          <FaClock className="icon-clock" /> Clock In
-        </Link>
-      </li>
-    </ul>
-    <button onClick={handleLogout}>Logout</button>
-  </aside>
+<aside className="sidebar">
+  <ul>
+    <li>
+      <Link to="/admin/employees">
+        <FaUserFriends className="icon-employees" /> Manage Employees
+      </Link>
+    </li>
+    <li>
+      <Link to="/admin/projects">
+        <FaProjectDiagram className="icon-projects" /> Manage Projects
+      </Link>
+    </li>
+    <li>
+      <Link to="/admin/reportspage">
+        <FaChartLine className="icon-reports" /> Reports
+      </Link>
+    </li>
+    <li>
+      <Link to="/admin/manage-tasks">
+        <FaTasks className="icon-tasks" /> Manage Tasks
+      </Link>
+    </li>
+    <li>
+      <Link to="/admin/manage-leaves">
+        <FaCalendarAlt className="icon-leaves" /> Manage Leaves
+      </Link>
+    </li>
+    <li>
+      <Link to="/admin/manage-clockin">
+        <FaCheckCircle className="icon-clockin" /> Manage Clockin
+      </Link>
+    </li>
+    <li>
+      <Link to="/clockin">
+        <FaClock className="icon-clock" /> Clock In
+      </Link>
+    </li>
+    <li>
+      <Link to="/login" onClick={handleLogout} className="logout-link">
+        <FaSignOutAlt className="icon-logout" /> Logout
+      </Link>
+    </li>
+  </ul>
+</aside>
+
 
 
   
