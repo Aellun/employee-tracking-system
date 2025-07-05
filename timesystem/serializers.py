@@ -1,90 +1,148 @@
 from rest_framework import serializers
-from .models import Employee, Project, Task, TimeEntry, ClockInRecord, BreakRecord, LeaveRequest,LeaveBalance
 from django.contrib.auth.models import User
+from .models import (
+    Employee,
+    Department,
+    Role,
+    Project,
+    Task,
+    TimeEntry,
+    ClockInRecord,
+    BreakRecord,
+    LeaveRequest,
+    LeaveBalance,
+    WorkHours, PerformanceReview
+)
 
-
+# --- User ---
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username']
 
 
+# --- Department ---
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = ['id', 'name', 'description']
+
+
+# --- Role ---
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ['id', 'title', 'level', 'description']
+
+
+# --- Employee ---
 class EmployeeSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    department = DepartmentSerializer(read_only=True)
+    role = RoleSerializer(read_only=True)
+    department_id = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all(), write_only=True, source='department')
+    role_id = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all(), write_only=True, source='role')
+
     class Meta:
         model = Employee
-        fields = '__all__'
+        fields = [
+            'id',
+            'user',
+            'profile_picture',
+            'contact_number',
+            'address',
+            'hire_date',
+            'is_active',
+            'department',
+            'role',
+            'department_id',
+            'role_id'
+        ]
 
+
+# --- Project ---
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
 
+
+# --- Task ---
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ['id', 'name', 'description', 'due_date', 'status', 'assigned_to']
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
 
 class TaskUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ['status', 'notes']
-        
+
     def validate(self, data):
         if data['status'] == 'completed' and not data.get('notes'):
             raise serializers.ValidationError("Notes are required when marking a task as completed.")
         return data
 
+
+# --- Time Entry ---
 class TimeEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeEntry
         fields = '__all__'
 
+
+# --- Break Record ---
 class BreakRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = BreakRecord
-        fields = ['break_type', 'break_notes', 'start_time', 'end_time', 'duration']  # Include relevant fields
+        fields = '__all__'
 
-class BreakRecordSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BreakRecord
-        fields = '__all__'  # Adjust this as necessary to include specific fields
 
+# --- Clock In Record ---
 class ClockInRecordSerializer(serializers.ModelSerializer):
-    breaks = BreakRecordSerializer(many=True, read_only=True)  # Fetch associated break records
-    hours_worked = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)  # Use model field name
-    extra_hours = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)  # Align with model
-    user_id = serializers.PrimaryKeyRelatedField(source='user', read_only=True)  # Add user_id to response
-    user = serializers.StringRelatedField()  # Keep this if you still want to display the user by username or email
     breaks = BreakRecordSerializer(many=True, read_only=True, source='breakrecord_set')
+    hours_worked = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
+    extra_hours = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
+    user_id = serializers.PrimaryKeyRelatedField(source='user', read_only=True)
+    user = serializers.StringRelatedField()
 
     class Meta:
         model = ClockInRecord
-        fields = ['id', 'user', 'user_id', 'time_clocked_in', 'time_clocked_out', 'hours_worked', 'extra_hours', 'breaks']
+        fields = [
+            'id', 'user', 'user_id',
+            'time_clocked_in', 'time_clocked_out',
+            'hours_worked', 'extra_hours', 'breaks'
+        ]
 
 
+# --- Leave Request ---
 class LeaveRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = LeaveRequest
-        fields = ['employee_name', 'employee_email', 'leave_type', 'start_date', 'end_date', 'reason', 'status']
+        fields = ['id', 'employee', 'leave_type', 'start_date', 'end_date', 'reason', 'status']
 
 
+# --- Leave Balance ---
 class LeaveBalanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = LeaveBalance
-        fields = ['annual', 'sick', 'casual', 'maternity']
+        fields = ['user', 'annual', 'sick', 'casual', 'maternity']
 
 
-class TaskSerializer(serializers.ModelSerializer):
+class WorkHoursSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Task
-        fields = ['id', 'name', 'description', 'due_date', 'status', 'assigned_to']
+        model = WorkHours
+        fields = '__all__'
 
-    # Optional custom update logic for partial updates
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.description = validated_data.get('description', instance.description)
-        instance.due_date = validated_data.get('due_date', instance.due_date)
-        instance.status = validated_data.get('status', instance.status)
-        instance.assigned_to = validated_data.get('assigned_to', instance.assigned_to)
-        instance.save()
-        return instance
+
+class PerformanceReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PerformanceReview
+        fields = '__all__'

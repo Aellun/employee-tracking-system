@@ -25,7 +25,11 @@ from .views import (
     LeaveBalanceView,
     TaskViewSet,
     ClockInRecordViewSet,
-    LeaveBalanceView
+    LeaveBalanceView,
+    DepartmentViewSet,
+    RoleViewSet,
+    WorkHoursViewSet,
+    PerformanceViewSet
 )
 
 router = DefaultRouter()
@@ -35,6 +39,11 @@ router.register(r'tasks', TaskViewSet)
 router.register(r'timeentries', TimeEntryViewSet)
 router.register(r'clockin', ClockInRecordViewSet)
 router.register(r'leave-requests', LeaveRequestViewSet, basename='leave-requests')
+router.register(r'departments', DepartmentViewSet)
+router.register(r'roles', RoleViewSet)
+router.register(r'workhours', WorkHoursViewSet)
+router.register(r'performance', PerformanceViewSet)
+
 
 urlpatterns = [
     # Authentication endpoints

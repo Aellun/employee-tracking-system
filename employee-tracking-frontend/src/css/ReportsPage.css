@@ -1,85 +1,124 @@
 /* Custom CSS for ReportsPage with green, goldish, and light orange tones */
 .reports-page .body, html {
-    font-family: 'Roboto', sans-serif;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: #f8f9fa; /* Light background for the entire page */
+}
+
+/* Header with a solid background color and subtle shadow */
+.reports-page header {
+  background-color: #2e7d32; /* Solid dark green */
+  color: #fff;
+  padding: 0.5rem;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Footer with a solid background color and subtle shadow */
+.reports-page footer {
+  background-color: #f39c12; 
+  color: white;
+  padding: 0.5rem;
+  text-align: center;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Sidebar with a solid background and a subtle border */
+.reports-page aside {
+  background-color: #f1f3f5;
+  padding: 2rem 1rem;
+  border-right: 1px solid #ddd;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.reports-page aside ul {
+  list-style: none;
+  padding: 0;
+}
+
+.reports-page aside ul li a {
+  display: block;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  color: #2e7d32;
+  font-weight: 600;
+  text-decoration: none;
+  background-color: #ffffff;
+  border: 1px solid #2e7d32;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.reports-page aside ul li a:hover {
+  background-color: #2e7d32;
+  color: #ffffff;
+  border-color: #2e7d32;
+}
+
+/* Main content area */
+main {
+  padding: 2rem;
+  background-color: #ffffff;
+  flex-grow: 1;
+  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+main h2 {
+  color: #333;
+  margin-bottom: 2rem;
+  font-size: 1.75rem;
+}
+
+/* Chart container with subtle background and shadow */
+.chart-container {
+  padding: 2rem;
+  background-color: #ffffff; /* Solid background */
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Centered text utility class */
+.text-center {
+  text-align: center;
+}
+
+/* Grid layout adjustments for responsiveness */
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr 2fr;
   }
-  
-  .reports-page header {
-    background: linear-gradient(90deg, #4caf50, #f4d03f); /* Green to Gold gradient */
-    color: #fff;
-    padding: 0.5rem;
-    text-align: center;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
   }
-  
-  footer {
-    background: linear-gradient(90deg, #f4d03f, #f39c12); /* Gold to light orange gradient */
-    color: white;
-    padding: 1rem;
-    text-align: center;
-  }
-  
+
   .reports-page aside {
-    background-color: #f7f9fc;
-    padding: 2rem 1rem;
-    border-right: 1px solid #ddd;
-  }
-  
-  .reports-page aside ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .reports-page aside ul li a {
-    display: block;
-    padding: 0.5rem 1rem;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 1rem;
     margin-bottom: 1rem;
-    border-radius: 4px;
-    color: #4caf50;
-    font-weight: 600;
-    text-decoration: none;
-    background-color: #fff;
-    border: 1px solid #4caf50;
-    transition: background-color 0.3s ease, color 0.3s ease;
   }
-  
-  .reports-page .aside ul li a:hover {
-    background-color: #4caf50;
-    color: #fff;
+}
+
+/* Mobile adjustments for smaller screens */
+@media (max-width: 480px) {
+  .reports-page header, footer {
+    padding: 0.75rem;
+    font-size: 0.9rem;
   }
-  
-  main {
-    padding: 2rem;
-    background-color: #fff;
-    flex-grow: 1;
-    overflow-y: auto;
+
+  .reports-page aside ul li a {
+    padding: 0.5rem;
+    font-size: 0.9rem;
   }
-  
+
   main h2 {
-    color: #333;
-    margin-bottom: 2rem;
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
-  
-  .chart-container {
-    padding: 2rem;
-    background: linear-gradient(120deg, #fdfbfb, #ebedee);
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .text-center {
-    text-align: center;
-  }
-  
-  @media (max-width: 768px) {
-    .grid {
-      grid-template-columns: 1fr !important;
-    }
-  
-    aside {
-      width: 100%;
-    }
-  }
-  
+}

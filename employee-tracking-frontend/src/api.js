@@ -176,3 +176,81 @@ export const endBreakRecord = async (authToken, breakId) => {
         }
     }
 };
+
+export const getEmployeeProfile = async (authToken, userId) => {
+    try {
+        const response = await axios.get(
+            `${API_URL}employees/${userId}/`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching employee profile:', error);
+        throw new Error('Failed to retrieve employee profile');
+    }
+};
+
+export const getDepartments = async (authToken) => {
+    const res = await axios.get(`${API_URL}departments/`, {
+        headers: {
+            Authorization: `Bearer ${authToken}`,
+        },
+    });
+    return res.data;
+};
+
+export const getRoles = async (authToken) => {
+    const res = await axios.get(`${API_URL}roles/`, {
+        headers: {
+            Authorization: `Bearer ${authToken}`,
+        },
+    });
+    return res.data;
+};
+
+export const submitWorkHours = async (authToken, payload) => {
+    const res = await axios.post(`${API_URL}workhours/`, payload, {
+        headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+        },
+    });
+    return res.data;
+};
+
+export const getWorkHours = async (authToken, userId = null) => {
+    const params = userId ? { user_id: userId } : {};
+    const res = await axios.get(`${API_URL}workhours/`, {
+        headers: {
+            Authorization: `Bearer ${authToken}`,
+        },
+        params,
+    });
+    return res.data;
+};
+
+export const submitPerformanceReview = async (authToken, payload) => {
+    const res = await axios.post(`${API_URL}performance/`, payload, {
+        headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+        },
+    });
+    return res.data;
+};
+
+export const getPerformanceReviews = async (authToken, userId = null) => {
+    const params = userId ? { user_id: userId } : {};
+    const res = await axios.get(`${API_URL}performance/`, {
+        headers: {
+            Authorization: `Bearer ${authToken}`,
+        },
+        params,
+    });
+    return res.data;
+};

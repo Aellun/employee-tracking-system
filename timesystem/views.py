@@ -31,7 +31,9 @@ from .models import (
     BreakRecord,
     ClockInRecord,
     LeaveRequest,
-    LeaveBalance
+    LeaveBalance,
+    Department, Role,
+    WorkHours, PerformanceReview
 )
 
 from .serializers import (
@@ -43,7 +45,9 @@ from .serializers import (
     ClockInRecordSerializer,
     BreakRecordSerializer,
     LeaveRequestSerializer,
-    LeaveBalanceSerializer
+    LeaveBalanceSerializer,
+    DepartmentSerializer, RoleSerializer,
+    WorkHoursSerializer, PerformanceReviewSerializer  
 )
 
 User = get_user_model()
@@ -514,3 +518,25 @@ class LeaveBalanceView(APIView):
 
         # Debugging output
         print(f"Updated Leave Balances - Annual: {leave_balance.annual}, Sick: {leave_balance.sick}, Casual: {leave_balance.casual}, Maternity: {leave_balance.maternity}")
+
+
+class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
+    permission_classes = [IsAuthenticated]
+
+class RoleViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer
+    permission_classes = [IsAuthenticated]
+
+class WorkHoursViewSet(viewsets.ModelViewSet):
+    queryset = WorkHours.objects.all()
+    serializer_class = WorkHoursSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class PerformanceViewSet(viewsets.ModelViewSet):
+    queryset = PerformanceReview.objects.all()
+    serializer_class = PerformanceReviewSerializer
+    permission_classes = [IsAuthenticated]
