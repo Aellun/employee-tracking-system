@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 class Department(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
@@ -16,6 +17,7 @@ class Role(models.Model):
     title = models.CharField(max_length=100)
     level = models.PositiveIntegerField(help_text="Higher level = more authority")
     description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
@@ -33,6 +35,7 @@ class Employee(models.Model):
     address = models.TextField(blank=True)
     hire_date = models.DateField()
     is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.user.get_full_name()
@@ -40,8 +43,18 @@ class Employee(models.Model):
 
 
 class Project(models.Model):
+    STATUS_CHOICES = [
+        ('planning', 'Planning'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('on_hold', 'On Hold'),
+    ]
     name = models.CharField(max_length=100)
     description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='planning')
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
@@ -59,14 +72,23 @@ class Task(models.Model):
     description = models.TextField()
     due_date = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
-    notes = models.TextField(null=True, blank=True)  # For extension or status change notes
+    notes = models.TextField(null=True, blank=True)
     assigned_to = models.ForeignKey('Employee', on_delete=models.SET_NULL, null=True)
-    project  = models.ForeignKey('Project', null=True, on_delete=models.SET_NULL)
+    project = models.ForeignKey('Project', null=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.name
 
-class TimeEntry(models.Model):
+class TimeStampedModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)  # optional
+
+    class Meta:
+        abstract = True
+
+class TimeEntry(TimeStampedModel):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
     start_time = models.DateTimeField()
@@ -79,7 +101,7 @@ class TimeEntry(models.Model):
     def clean(self):
         if self.end_time and self.start_time and self.end_time < self.start_time:
             raise ValidationError("End time must be after start time.")
-
+    
 class ClockInRecord(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     time_clocked_in = models.DateTimeField(default=timezone.now)
@@ -150,26 +172,18 @@ class BreakRecord(models.Model):
 
 
 class LeaveRequest(models.Model):
-    LEAVE_TYPES = [
-        ('ANNUAL', 'Annual Leave'),
-        ('SICK', 'Sick Leave'),
-        ('CASUAL', 'Casual Leave'),
-        ('MATERNITY', 'Maternity Leave'),
-    ]
-
     employee_name = models.CharField(max_length=100)
-    employee_email = models.EmailField(max_length=100)
-    leave_type = models.CharField(max_length=20, choices=LEAVE_TYPES)
+    employee_email = models.EmailField()
+    leave_type = models.CharField(max_length=50)
     start_date = models.DateField()
     end_date = models.DateField()
     reason = models.TextField()
-    status = models.CharField(max_length=10, default='PENDING')
-
-    # Use the User model for the association
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="leave_requests", default=1)
+    status = models.CharField(max_length=20, default='PENDING')
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)  # 👈 add this
 
     def __str__(self):
-        return f"{self.employee_name} - {self.leave_type}"
+        return f"{self.employee_name} ({self.leave_type})"
     
 
 class LeaveBalance(models.Model):

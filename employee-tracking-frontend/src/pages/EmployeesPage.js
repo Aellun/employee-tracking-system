@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import EmployeeForm from '../components/EmployeeForm';
 import { useAuth } from '../AuthProvider';
+import '../css/ManageEmployees.css';
 
 const ManageEmployees = () => {
   const [employees, setEmployees] = useState([]);
@@ -10,6 +11,8 @@ const ManageEmployees = () => {
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const { token } = useAuth();
 
   useEffect(() => {
@@ -18,209 +21,336 @@ const ManageEmployees = () => {
 
   const fetchEmployees = async () => {
     try {
+      setIsLoading(true);
       const response = await axios.get('http://localhost:8000/admin-dashboard/api/employees/data/', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       setEmployees(response.data);
-      setFilteredEmployees(response.data); // Initialize filtered list to full list
+      setFilteredEmployees(response.data);
+      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching employees', error);
+      setIsLoading(false);
     }
   };
 
-  const handleCreateOrUpdateEmployee = (employeeData) => {
-    const url = selectedEmployee 
-      ? `http://localhost:8000/admin-dashboard/api/employees/data/${selectedEmployee.id}/` 
-      : 'http://localhost:8000/admin-dashboard/api/employees/data/';
-
-    const method = selectedEmployee ? 'put' : 'post';
-
-    axios({
-      method: method,
-      url: url,
-      data: employeeData,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-    .then(response => {
-      fetchEmployees();
+  const handleCreateOrUpdateEmployee = async (employeeData) => {
+    try {
+      setIsLoading(true);
+      const url = selectedEmployee 
+        ? `http://localhost:8000/admin-dashboard/api/employees/data/${selectedEmployee.id}/` 
+        : 'http://localhost:8000/admin-dashboard/api/employees/data/';
+      
+      const method = selectedEmployee ? 'put' : 'post';
+      
+      await axios({
+        method: method,
+        url: url,
+        data: employeeData,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      await fetchEmployees();
       setShowModal(false);
       setSelectedEmployee(null);
-    })
-    .catch(error => {
-      const errorMessage = error.response?.data?.email || error.response?.data?.message || 'An error occurred. Please try again.';
+    } catch (error) {
+      const errorMessage = error.response?.data?.email || 
+                           error.response?.data?.message || 
+                           'An error occurred. Please try again.';
       alert(errorMessage);
       console.error('Error creating/updating employee', error);
-    });
+      setIsLoading(false);
+    }
   };
 
   const handleDeleteEmployee = async () => {
     try {
+      setIsLoading(true);
       await axios.delete(`http://localhost:8000/admin-dashboard/api/employees/data/${selectedEmployee.id}/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      fetchEmployees();
+      await fetchEmployees();
       setShowDeleteModal(false);
       setSelectedEmployee(null);
     } catch (error) {
       console.error('Error deleting employee', error);
+      setIsLoading(false);
     }
   };
 
-  const handleSearch = () => {
+  const handleSearch = (e) => {
+    e.preventDefault();
     const lowerCaseTerm = searchTerm.toLowerCase();
     const results = employees.filter(employee =>
-      employee.first_name.toLowerCase().includes(lowerCaseTerm) ||
-      employee.last_name.toLowerCase().includes(lowerCaseTerm) ||
-      employee.email.toLowerCase().includes(lowerCaseTerm)
+      employee.first_name?.toLowerCase().includes(lowerCaseTerm) ||
+      employee.last_name?.toLowerCase().includes(lowerCaseTerm) ||
+      employee.email?.toLowerCase().includes(lowerCaseTerm) ||
+      employee.position?.toLowerCase().includes(lowerCaseTerm)
     );
     setFilteredEmployees(results);
   };
 
+  const resetSearch = () => {
+    setSearchTerm('');
+    setFilteredEmployees(employees);
+  };
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    
+    const sortedEmployees = [...filteredEmployees].sort((a, b) => {
+      if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
+      if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+    
+    setFilteredEmployees(sortedEmployees);
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === 'asc' ? '↑' : '↓';
+  };
+
   return (
-    <div style={{ maxWidth: '950px', margin: 'auto', padding: '20px', fontFamily: 'Arial, sans-serif', color: '#333' }}>
-      <h2 style={{ fontSize: '26px', fontWeight: '600', marginBottom: '20px', color: '#333' }}>Manage Employees</h2>
-
-      {/* Search Input and Button */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        <input
-          type="text"
-          placeholder="Search by name or email"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ padding: '10px', width: '300px', borderRadius: '8px', border: '1px solid #ccc' }}
-        />
-        <button
-          onClick={handleSearch}
-          style={{ backgroundColor: '#007BFF', color: 'white', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', border: 'none', transition: 'background 0.3s' }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#0056b3'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#007BFF'}
-        >
-          Search
-        </button>
-        <button
+    <div className="manage-employees-container">
+      <div className="header-section">
+        <div className="title-container">
+          <h1>Employee Management</h1>
+          <p>Manage your team members and their information</p>
+        </div>
+        
+        <button 
+          className="add-employee-btn"
           onClick={() => {
-            setFilteredEmployees(employees);
-            setSearchTerm('');
+            setSelectedEmployee(null);
+            setShowModal(true);
           }}
-          style={{ backgroundColor: '#6c757d', color: 'white', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', border: 'none', transition: 'background 0.3s' }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#5a6268'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#6c757d'}
         >
-          Reset
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+          </svg>
+          Add New Employee
         </button>
       </div>
 
-      <button
-        onClick={() => setShowModal(true)}
-        style={{
-          backgroundColor: '#007BFF',
-          color: 'white',
-          padding: '5px 10px',
-          fontSize: '18px',
-          borderRadius: '5px',
-          cursor: 'pointer',
-          border: 'none',
-          transition: 'background 0.3s',
-          width: '200px',
-        }}
-        onMouseEnter={(e) => (e.target.style.backgroundColor = '#0056b3')}
-        onMouseLeave={(e) => (e.target.style.backgroundColor = '#007BFF')}
-      >
-        Add Employee
-      </button>
-
-      <div style={{ marginTop: '20px', overflowX: 'auto' }}>
-        <table style={{ width: '100%', backgroundColor: '#FFF', boxShadow: '0 6px 12px rgba(0, 0, 0, 0.15)', borderRadius: '8px', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f7f8fa', textAlign: 'left', color: '#555' }}>
-              {['ID', 'First Name', 'Last Name', 'Email', 'Position', 'Actions'].map((header) => (
-                <th key={header} style={{ padding: '12px', fontSize: '16px', fontWeight: '500' }}>{header}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {filteredEmployees.map(employee => (
-              <tr key={employee.id} style={{ backgroundColor: '#FFF', borderBottom: '1px solid #E0E0E0' }}>
-                <td style={{ padding: '12px' }}>{employee.id}</td>
-                <td style={{ padding: '12px' }}>{employee.first_name}</td>
-                <td style={{ padding: '12px' }}>{employee.last_name}</td>
-                <td style={{ padding: '12px' }}>{employee.email}</td>
-                <td style={{ padding: '12px' }}>{employee.position}</td>
-                <td style={{ padding: '12px', display: 'flex', gap: '10px' }}>
-                  <button
-                    onClick={() => {
-                      setSelectedEmployee(employee);
-                      setShowModal(true);
-                    }}
-                    style={{ backgroundColor: '#6c757d', color: 'white', padding: '6px 12px', borderRadius: '5px', cursor: 'pointer', border: 'none', transition: 'background 0.3s' }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#5a6268'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = '#6c757d'}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSelectedEmployee(employee);
-                      setShowDeleteModal(true);
-                    }}
-                    style={{ backgroundColor: '#DC3545', color: 'white', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' }}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="controls-section">
+        <form onSubmit={handleSearch} className="search-form">
+          <div className="search-input-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by name, email, or position"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button type="submit" className="search-btn">Search</button>
+          <button 
+            type="button" 
+            className="reset-btn"
+            onClick={resetSearch}
+          >
+            Reset
+          </button>
+        </form>
+        
+        <div className="stats-container">
+          <div className="stat-card">
+            <span>Total Employees</span>
+            <strong>{employees.length}</strong>
+          </div>
+          <div className="stat-card">
+            <span>Active Today</span>
+            <strong>{employees.filter(e => e.status === 'active').length}</strong>
+          </div>
+        </div>
       </div>
 
-      {/* Modal for Add/Edit */}
+      {isLoading ? (
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Loading employee data...</p>
+        </div>
+      ) : (
+        <div className="employees-table-container">
+          <table className="employees-table">
+            <thead>
+              <tr>
+                <th onClick={() => handleSort('id')}>
+                  ID {getSortIcon('id')}
+                </th>
+                <th onClick={() => handleSort('first_name')}>
+                  Name {getSortIcon('first_name')}
+                </th>
+                <th onClick={() => handleSort('email')}>
+                  Email {getSortIcon('email')}
+                </th>
+                <th onClick={() => handleSort('position')}>
+                  Position {getSortIcon('position')}
+                </th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredEmployees.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="no-results">
+                    <div className="no-results-content">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                      </svg>
+                      <p>No employees found matching your search criteria</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredEmployees.map(employee => (
+                  <tr key={employee.id}>
+                    <td>{employee.id}</td>
+                    <td>
+                      <div className="employee-info">
+                        <div className="avatar-placeholder">
+                          {employee.first_name?.[0] || 'U'}
+                        </div>
+                        <div>
+                          <div className="employee-name">
+                            {employee.first_name} {employee.last_name}
+                          </div>
+                          <div className="employee-department">
+                            {employee.department || 'No department'}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{employee.email}</td>
+                    <td>{employee.position}</td>
+                    <td>
+                      <span className={`status-badge ${employee.status || 'inactive'}`}>
+                        {employee.status || 'Inactive'}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="action-buttons">
+                        <button 
+                          className="edit-btn"
+                          onClick={() => {
+                            setSelectedEmployee(employee);
+                            setShowModal(true);
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                          </svg>
+                        </button>
+                        <button 
+                          className="delete-btn"
+                          onClick={() => {
+                            setSelectedEmployee(employee);
+                            setShowDeleteModal(true);
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Add/Edit Employee Modal */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: '0', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)', minWidth: '300px', zIndex: 1000 }}>
-            <h3 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '15px', color: '#333' }}>{selectedEmployee ? 'Edit Employee' : 'Add Employee'}</h3>
-            <EmployeeForm
-              employee={selectedEmployee}
-              onSubmit={handleCreateOrUpdateEmployee}
-              onClose={() => setShowModal(false)}
-            />
-            <div style={{ textAlign: 'right', marginTop: '20px' }}>
-              <button
-                onClick={() => setShowModal(false)}
-                style={{ backgroundColor: '#dc3545', color: 'white', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', border: 'none' }}
+        <div className="modal-overlay">
+          <div className="employee-modal">
+            <div className="modal-header">
+              <h3>{selectedEmployee ? 'Edit Employee' : 'Add New Employee'}</h3>
+              <button 
+                className="close-modal"
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedEmployee(null);
+                }}
               >
-                Cancel
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
               </button>
+            </div>
+            
+            <div className="modal-content">
+              <EmployeeForm
+                employee={selectedEmployee}
+                onSubmit={handleCreateOrUpdateEmployee}
+                onClose={() => setShowModal(false)}
+                isLoading={isLoading}
+              />
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal for Delete Confirmation */}
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div style={{ position: 'fixed', inset: '0', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-          <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)', minWidth: '300px', zIndex: 1000 }}>
-            <h3 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '15px', color: '#333' }}>Confirm Delete</h3>
-            <p>Are you sure you want to delete {selectedEmployee?.first_name} {selectedEmployee?.last_name}?</p>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
-              <button
-                onClick={handleDeleteEmployee}
-                style={{ backgroundColor: '#DC3545', color: 'white', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', border: 'none' }}
-              >
-                Yes, Delete
-              </button>
-              <button
+        <div className="modal-overlay">
+          <div className="confirmation-modal">
+            <div className="modal-header">
+              <h3>Confirm Delete</h3>
+              <button 
+                className="close-modal"
                 onClick={() => setShowDeleteModal(false)}
-                style={{ backgroundColor: '#6c757d', color: 'white', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', border: 'none' }}
               >
-                Cancel
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
               </button>
+            </div>
+            
+            <div className="modal-content">
+              <div className="delete-warning">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+                <p>
+                  Are you sure you want to permanently delete 
+                  <strong> {selectedEmployee?.first_name} {selectedEmployee?.last_name}</strong>?
+                </p>
+                <p className="warning-note">This action cannot be undone.</p>
+              </div>
+              
+              <div className="modal-actions">
+                <button 
+                  className="cancel-btn"
+                  onClick={() => setShowDeleteModal(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="confirm-delete-btn"
+                  onClick={handleDeleteEmployee}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Deleting...' : 'Yes, Delete Employee'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

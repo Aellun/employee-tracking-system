@@ -1,81 +1,487 @@
-.leave-page {
-    background-color: #f9f9f9;
+/* LeaveManagementSystem.css */
+.leave-management-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+.leave-management-header {
+  text-align: center;
+  margin-bottom: 30px;
 }
 
-header {
-    background-color: #191C24;
-    color: white;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+.leave-management-header h1 {
+  font-size: 32px;
+  color: #2c3e50;
+  margin-bottom: 10px;
 }
 
-aside {
-    background-color: #eaeaea;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    transition: width 0.3s ease;
+.leave-management-header p {
+  font-size: 18px;
+  color: #7b8793;
 }
 
-aside h2 {
-    color: #191C24;
-    margin-bottom: 15px;
+.leave-tabs {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 25px;
 }
 
-button {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    width: 100%;
-    color: #4A4A4A;
-    background-color: transparent;
-    border: none;
-    border-radius: 8px;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    cursor: pointer;
+.leave-tab {
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  color: #718096;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
-button:hover {
-    background-color: #AF1763;
-    color: white;
+.leave-tab:hover {
+  color: #4361ee;
 }
 
-main {
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
+.leave-tab.active {
+  color: #4361ee;
+  font-weight: 600;
 }
 
-h2 {
-    color: #191C24;
-    margin-bottom: 16px;
+.leave-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: #4361ee;
+  border-radius: 3px 3px 0 0;
 }
 
-footer {
-    background-color: #333333;
-    color: white;
-    text-align: center;
-    padding: 16px;
-    position: relative;
-    bottom: 0;
-    width: 100%;
+.leave-management-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  padding: 30px;
 }
 
-footer p {
-    margin: 0;
+.leave-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
 }
 
-footer a {
-    color: #bbb;
-    text-decoration: none;
+.leave-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(67, 97, 238, 0.2);
+  border-top: 5px solid #4361ee;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
 }
 
-footer a:hover {
-    color: #fff;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Form Styles */
+.leave-form-section h2 {
+  font-size: 24px;
+  margin-bottom: 25px;
+  color: #2c3e50;
+}
+
+.leave-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #4a5568;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 12px 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #4361ee;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.btn-primary {
+  background: linear-gradient(to right, #4361ee, #3a0ca3);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #4a5568;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+.btn-cancel {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+  background: #c0392b;
+}
+
+/* History Styles */
+.leave-history-section h2 {
+  font-size: 24px;
+  margin-bottom: 25px;
+  color: #2c3e50;
+}
+
+.no-leave-history {
+  text-align: center;
+  padding: 40px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.leave-history-table {
+  overflow-x: auto;
+}
+
+.leave-history-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leave-history-table th {
+  background-color: #f7f8fa;
+  text-align: left;
+  padding: 12px 15px;
+  font-weight: 600;
+  color: #4a5568;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.leave-history-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.leave-type-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.leave-type-badge.annual {
+  background-color: rgba(67, 97, 238, 0.1);
+  color: #4361ee;
+}
+
+.leave-type-badge.sick {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: #27ae60;
+}
+
+.leave-type-badge.casual {
+  background-color: rgba(241, 196, 15, 0.1);
+  color: #f39c12;
+}
+
+.leave-type-badge.maternity {
+  background-color: rgba(155, 89, 182, 0.1);
+  color: #9b59b6;
+}
+
+.leave-reason {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge.pending {
+  background-color: rgba(241, 196, 15, 0.1);
+  color: #f39c12;
+}
+
+.status-badge.approved {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: #27ae60;
+}
+
+.status-badge.rejected {
+  background-color: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+}
+
+.status-badge.draft {
+  background-color: rgba(149, 165, 166, 0.1);
+  color: #95a5a6;
+}
+
+.edit-btn {
+  background-color: rgba(52, 152, 219, 0.1);
+  color: #3498db;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+  background-color: rgba(52, 152, 219, 0.2);
+}
+
+/* Balance Styles */
+.leave-balance-section h2 {
+  font-size: 24px;
+  margin-bottom: 25px;
+  color: #2c3e50;
+}
+
+.leave-balance-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.balance-card {
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.card-content {
+  flex: 1;
+  padding: 20px;
+}
+
+.card-icon {
+  width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.card-icon svg {
+  width: 40px;
+  height: 40px;
+}
+
+.balance-card h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.balance-value {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.balance-card p {
+  font-size: 14px;
+  color: #718096;
+}
+
+/* Color schemes for balance cards */
+.balance-card.annual {
+  background: linear-gradient(135deg, #4361ee, #3a0ca3);
+  color: white;
+}
+
+.balance-card.sick {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+}
+
+.balance-card.casual {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+}
+
+.balance-card.maternity {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+}
+
+.hr-contact-info {
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 20px;
+  border-left: 4px solid #4361ee;
+}
+
+.hr-contact-info h3 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+.hr-contact-info p {
+  margin-bottom: 10px;
+  color: #4a5568;
+}
+
+.contact-details {
+  margin-top: 15px;
+}
+
+.contact-details p {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.contact-details strong {
+  min-width: 60px;
+}
+
+.contact-details a {
+  color: #4361ee;
+  text-decoration: none;
+}
+
+.contact-details a:hover {
+  text-decoration: underline;
+}
+
+/* Policies Styles */
+.policies-section h2 {
+  font-size: 24px;
+  margin-bottom: 25px;
+  color: #2c3e50;
+}
+
+.policy-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+  overflow: hidden;
+  border-left: 4px solid #4361ee;
+}
+
+.policy-content {
+  padding: 25px;
+}
+
+.policy-content h3 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+.policy-content p {
+  margin-bottom: 15px;
+  line-height: 1.6;
+  color: #4a5568;
+}
+
+.policy-content ul {
+  list-style-type: disc;
+  padding-left: 25px;
+  margin: 15px 0;
+}
+
+.policy-content li {
+  margin-bottom: 8px;
+  color: #4a5568;
+}
+
+.policy-documents {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.policy-link {
+  display: inline-block;
+  padding: 12px 25px;
+  background: #4361ee;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.policy-link:hover {
+  background: #3a0ca3;
+  transform: translateY(-2px);
 }

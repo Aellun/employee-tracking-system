@@ -1,6 +1,6 @@
 from rest_framework import viewsets, response, status
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta,datetime
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth import authenticate
@@ -20,6 +20,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.exceptions import ValidationError
+from django.db.models import Count, Sum, F, Q
+from django.db.models.functions import TruncDate
 
 
 from .models import (
@@ -67,6 +69,15 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request, pk=None):
+        try:
+            employee = self.get_object()
+            serializer = self.get_serializer(employee)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
@@ -345,12 +356,14 @@ def update(self, request, *args, **kwargs):
 
 class TodayTasksView(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = TaskSerializer  # Add this line
+    serializer_class = TaskSerializer
 
     def get(self, request):
-        # Filter tasks based on status
-        tasks = Task.objects.filter(status__in=['pending', 'awaiting_approval'])
-        serializer = self.serializer_class(tasks, many=True)  # Use the serializer to serialize the queryset
+        today = timezone.now().date()
+        tasks = Task.objects.filter(
+            Q(due_date__date=today) | Q(status__in=['pending', 'awaiting_approval'])
+        )
+        serializer = self.serializer_class(tasks, many=True)
         return Response(serializer.data)
 
 
@@ -540,3 +553,194 @@ class PerformanceViewSet(viewsets.ModelViewSet):
     queryset = PerformanceReview.objects.all()
     serializer_class = PerformanceReviewSerializer
     permission_classes = [IsAuthenticated]
+
+
+
+class AdminDashboardStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Ensure only admins can access
+        if not request.user.is_staff:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+        
+        # Calculate statistics
+        total_employees = Employee.objects.count()
+        total_projects = Project.objects.count()
+        total_tasks = Task.objects.count()
+        
+        # Clock-ins today
+        today = timezone.now().date()
+        total_clockins_today = ClockInRecord.objects.filter(
+            time_clocked_in__date=today
+        ).count()
+        
+        # Pending leave requests
+        pending_leave_requests = LeaveRequest.objects.filter(status='PENDING').count()
+        
+        # Pending approvals (tasks + leave requests)
+        pending_task_approvals = Task.objects.filter(status='awaiting_approval').count()
+        pending_approvals = pending_leave_requests + pending_task_approvals
+        
+        return Response({
+            'total_employees': total_employees,
+            'total_projects': total_projects,
+            'total_tasks': total_tasks,
+            'total_clockins_today': total_clockins_today,
+            'pending_leave_requests': pending_leave_requests,
+            'pending_approvals': pending_approvals
+        })
+        
+
+class AdminDashboardChartsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not request.user.is_staff:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+        
+        # 1. Project Status Distribution
+        project_status = Project.objects.values('status').annotate(
+            count=Count('id')
+        ).order_by('status')
+        
+        # 2. Employee Distribution by Department
+        employee_distribution = Employee.objects.values(
+            'department__name'
+        ).annotate(
+            count=Count('id')
+        ).order_by('-count')
+        
+        # 3. Leave Balance Overview
+        leave_balances = LeaveBalance.objects.aggregate(
+            total_annual=Sum('annual'),
+            total_sick=Sum('sick'),
+            total_casual=Sum('casual'),
+            total_maternity=Sum('maternity')
+        )
+        
+        # 4. Weekly Hours Distribution
+        last_week = timezone.now() - timedelta(days=7)
+        weekly_hours = WorkHours.objects.filter(
+            clock_in_time__gte=last_week
+        ).annotate(
+            date=TruncDate('clock_in_time')
+        ).values('date').annotate(
+            total_hours=Sum('total_hours')
+        ).order_by('date')
+        
+        return Response({
+            'project_status': list(project_status),
+            'employee_distribution': list(employee_distribution),
+            'leave_balances': leave_balances,
+            'weekly_hours': list(weekly_hours)
+        })
+
+class AdminDashboardRecentActivityView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        if not request.user.is_staff:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+            
+        # Get recent activities from multiple models
+        recent_activities = []
+        
+        # Clock in/out activities
+        clock_records = ClockInRecord.objects.select_related('user').order_by('-time_clocked_in')[:10]
+        for record in clock_records:
+            action = "clocked in" if not record.time_clocked_out else "clocked out"
+            recent_activities.append({
+                'type': 'attendance',
+                'user': record.user.username,
+                'action': action,
+                'timestamp': record.time_clocked_in,
+                'details': f"{record.hours_worked} hours worked"
+            })
+        
+        # Task activities
+        task_changes = Task.objects.select_related('assigned_to__user').order_by('-created_at')[:10]
+        for task in task_changes:
+            recent_activities.append({
+                'type': 'task',
+                'user': task.assigned_to.user.username if task.assigned_to else 'System',
+                'action': f"updated task status to {task.status}",
+                'timestamp': task.created_at,
+                'details': task.name
+            })
+        
+        # Leave request activities
+        leave_requests = LeaveRequest.objects.select_related('user').order_by('-created_at')[:10]
+        for leave in leave_requests:
+            recent_activities.append({
+                'type': 'leave',
+                'user': leave.user.username,
+                'action': f"submitted {leave.leave_type} leave request",
+                'timestamp': leave.created_at,
+                'details': f"{leave.start_date} to {leave.end_date}"
+            })
+        
+        # Sort all activities by timestamp
+        recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
+        
+        return Response(recent_activities[:10])  # Return top 10
+
+
+
+class AdminDashboardNotificationsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not request.user.is_staff:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        notifications = []
+
+        # 1. Pending leave requests
+        pending_leaves = LeaveRequest.objects.filter(status='PENDING').select_related('user')
+        for leave in pending_leaves:
+            notifications.append({
+                'type': 'leave',
+                'id': leave.id,
+                'title': 'Leave Request',
+                'message': f'{leave.user.get_full_name()} requested {leave.leave_type} leave',
+                'timestamp': leave.created_at,
+                'status': 'pending'
+            })
+
+        # 2. Tasks awaiting approval
+        pending_tasks = Task.objects.filter(status='awaiting_approval').select_related('assigned_to__user')
+        for task in pending_tasks:
+            user_name = task.assigned_to.user.get_full_name() if task.assigned_to else 'Someone'
+            notifications.append({
+                'type': 'task',
+                'id': task.id,
+                'title': 'Task Approval',
+                'message': f'Task "{task.name}" by {user_name} needs approval',
+                'timestamp': task.created_at,
+                'status': 'pending'
+            })
+
+        # 3. Late clock-ins (after 9 AM today)
+        today = datetime.now().date()
+        late_clockins = ClockInRecord.objects.filter(
+            time_clocked_in__date=today,
+            time_clocked_in__hour__gt=9
+        ).select_related('user')
+
+        for record in late_clockins:
+            clockin_time = record.time_clocked_in.strftime('%H:%M:%S')
+            notifications.append({
+                'type': 'attendance',
+                'id': record.id,
+                'title': 'Late Arrival',
+                'message': f'{record.user.username} clocked in late at {clockin_time}',
+                'timestamp': record.time_clocked_in,
+                'status': 'warning'
+            })
+
+        # Sort by timestamp descending
+        notifications.sort(key=lambda x: x['timestamp'], reverse=True)
+
+        # Return top 10 recent notifications
+        return Response(notifications[:10])
